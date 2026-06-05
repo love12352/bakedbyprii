@@ -1,0 +1,71 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  // SQLite for local testing — switch to postgresql + DATABASE_URL for production
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model Product {
+  id          Int      @id @default(autoincrement())
+  name        String
+  description String
+  category    String   // cookies | cakes | cupcakes
+  pricePence  Int      // stored in pence (£6.50 → 650) to avoid float rounding
+  unit        String   // "/ box of 6"
+  tag         String?  // Bestseller | New | Veg
+  allergens   String   @default("[]") // JSON string — SQLite compat; use String[] on PostgreSQL
+  imageUrl    String?
+  inStock     Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  orders      OrderItem[]
+}
+
+model Order {
+  id             Int         @id @default(autoincrement())
+  customerName   String
+  customerEmail  String
+  customerPhone  String
+  neededBy       DateTime
+  message        String?
+  paymentMethod  String       // STRIPE | PAY_ON_DELIVERY
+  status         String       @default("PENDING")
+  stripeSessionId String?    @unique
+  totalPence     Int         // total in pence
+  gdprConsent    Boolean     @default(false)
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+  items          OrderItem[]
+}
+
+model OrderItem {
+  id        Int     @id @default(autoincrement())
+  order     Order   @relation(fields: [orderId], references: [id])
+  orderId   Int
+  product   Product @relation(fields: [productId], references: [id])
+  productId Int
+  quantity  Int     @default(1)
+  pricePence Int    // snapshot of price at time of order
+}
+
+model AdminUser {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  password  String   // bcrypt hash
+  createdAt DateTime @default(now())
+}
+
+// UK GDPR Article 17 — right to erasure
+model GdprDeletionRequest {
+  id          Int      @id @default(autoincrement())
+  email       String
+  requestedAt DateTime @default(now())
+  completedAt DateTime?
+  notes       String?
+}
+
+// Enums above replaced with String fields for SQLite compatibility.
+// Restore enum PaymentMethod / enum OrderStatus when switching to PostgreSQL.

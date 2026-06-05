@@ -1,0 +1,28 @@
+# Dependencies
+node_modules/
+
+# Environment secrets — NEVER commit these
+.env
+*.env
+
+# SQLite local database
+*.db
+*.db-journal
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+*.swp
+
+# Claude Code internal files
+.claude/
+
+# Test/local data
+orders.json
