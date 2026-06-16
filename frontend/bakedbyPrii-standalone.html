@@ -72,14 +72,31 @@
         --ink-soft: #6b5546;
         --rose: #e8859b;
         --rose-deep: #d4607c;
-        --berry: #b3456a;
-        --caramel: #c98a4b;
+        --berry: #a83c61; /* nudged darker for AA contrast on cream */
+        --caramel: #b9763a; /* nudged darker for AA contrast */
         --mint: #8fb98f;
         --gold: #e7b84e;
         --choco: #5a3a2c;
         --white: #fffdfa;
-        --shadow: 28px 28px 60px rgba(90, 58, 44, 0.16);
+
+        /* Soft, warm, layered elevation — replaces the old single
+           directional shadow for a more natural, premium depth. */
+        --shadow-sm: 0 2px 8px rgba(90, 58, 44, 0.06);
+        --shadow-md: 0 14px 32px -12px rgba(90, 58, 44, 0.16),
+          0 4px 10px -6px rgba(90, 58, 44, 0.1);
+        --shadow-lg: 0 36px 70px -24px rgba(90, 58, 44, 0.26),
+          0 12px 26px -14px rgba(90, 58, 44, 0.14);
+        --shadow: var(--shadow-lg); /* back-compat alias */
+
+        /* Radius scale */
         --radius: 26px;
+        --radius-sm: 16px;
+        --radius-lg: 34px;
+
+        /* Hairline border + keyboard focus ring */
+        --hair: color-mix(in srgb, var(--ink) 11%, transparent);
+        --ring: 0 0 0 3px rgba(212, 96, 124, 0.5);
+
         --ease: cubic-bezier(0.22, 1, 0.36, 1);
         --font-head: "Fraunces", Georgia, serif;
         --font-body: "Manrope", system-ui, sans-serif;
@@ -199,6 +216,23 @@
         font-family: var(--font-head);
         font-weight: 500;
         line-height: 1.05;
+        letter-spacing: -0.018em;
+        font-optical-sizing: auto;
+        text-wrap: balance;
+      }
+
+      /* Visible keyboard focus for all interactive elements (a11y) —
+         mouse users keep the clean look via :focus-visible. */
+      a:focus-visible,
+      button:focus-visible,
+      input:focus-visible,
+      select:focus-visible,
+      textarea:focus-visible,
+      summary:focus-visible,
+      [tabindex]:focus-visible {
+        outline: none;
+        box-shadow: var(--ring);
+        border-radius: 6px;
       }
       .section {
         padding: clamp(4.5rem, 9vw, 8rem) 0;
@@ -284,10 +318,12 @@
           box-shadow 0.4s var(--ease);
       }
       .nav.scrolled {
-        background: rgba(253, 246, 238, 0.85);
-        backdrop-filter: blur(14px);
+        background: rgba(253, 246, 238, 0.72);
+        backdrop-filter: blur(18px) saturate(1.4);
+        -webkit-backdrop-filter: blur(18px) saturate(1.4);
         padding-block: 0.85rem;
-        box-shadow: 0 6px 30px rgba(90, 58, 44, 0.08);
+        border-bottom: 1px solid var(--hair);
+        box-shadow: 0 6px 30px rgba(90, 58, 44, 0.07);
       }
       .brand {
         display: flex;
@@ -692,11 +728,11 @@
       }
       .cat-card {
         position: relative;
-        border-radius: var(--radius);
+        border-radius: var(--radius-lg);
         padding: 2.4rem 2rem 2.6rem;
         overflow: hidden;
         isolation: isolate;
-        min-height: 340px;
+        min-height: 360px;
         display: flex;
         flex-direction: column;
         justify-content: flex-end;
@@ -742,7 +778,7 @@
       }
       .cat-card:hover {
         transform: translateY(-10px);
-        box-shadow: var(--shadow);
+        box-shadow: var(--shadow-lg);
       }
       .cat-card:hover img {
         transform: scale(1.08);
@@ -836,9 +872,10 @@
 
       .product {
         background: var(--white);
+        border: 1px solid var(--hair);
         border-radius: var(--radius);
         padding: 1.4rem;
-        box-shadow: 0 10px 30px rgba(90, 58, 44, 0.07);
+        box-shadow: var(--shadow-sm);
         transition:
           transform 0.5s var(--ease),
           box-shadow 0.5s var(--ease);
@@ -968,6 +1005,128 @@
       }
 
       /* =========================================================
+   SEASONAL SPECIAL  (adapted from a 21st-dev Magic component
+   into the site's vanilla warm-artisan system)
+   ========================================================= */
+      .special {
+        background:
+          radial-gradient(800px 420px at 88% -10%, #fbe3d4, transparent 60%),
+          linear-gradient(180deg, var(--cream-2), var(--cream));
+        overflow: hidden;
+      }
+      .special-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: clamp(2rem, 5vw, 4.5rem);
+        align-items: center;
+      }
+      @media (max-width: 880px) {
+        .special-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+      .special-art {
+        position: relative;
+        border-radius: var(--radius-lg);
+        overflow: hidden;
+        aspect-ratio: 4 / 3;
+        background: radial-gradient(circle at 30% 20%, #ffd9c7, #f1a98e);
+        box-shadow: var(--shadow-lg);
+      }
+      .special-art img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        opacity: 0;
+        transition:
+          opacity 0.6s var(--ease),
+          transform 0.7s var(--ease);
+      }
+      .special-art img.loaded {
+        opacity: 1;
+      }
+      .special:hover .special-art img {
+        transform: scale(1.05);
+      }
+      .special-badge {
+        position: absolute;
+        top: 1.1rem;
+        right: 1.1rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.45rem;
+        padding: 0.5rem 0.95rem;
+        border-radius: 100px;
+        background: linear-gradient(135deg, var(--caramel), #a9692f);
+        color: #fff;
+        font-weight: 700;
+        font-size: 0.8rem;
+        letter-spacing: 0.01em;
+        box-shadow: var(--shadow-md);
+      }
+      .special-badge svg {
+        width: 16px;
+        height: 16px;
+        stroke: currentColor;
+        fill: none;
+        stroke-width: 1.8;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+      }
+      .special-copy h2 {
+        font-size: clamp(2.2rem, 5vw, 3.4rem);
+        margin: 0.8rem 0 1rem;
+      }
+      .special-copy .lead2 {
+        color: var(--ink-soft);
+        margin-bottom: 1.4rem;
+        max-width: 46ch;
+      }
+      .special-price {
+        display: flex;
+        align-items: baseline;
+        gap: 0.5rem;
+        margin-bottom: 1.3rem;
+      }
+      .special-price .amt {
+        font-family: var(--font-head);
+        font-size: 2.1rem;
+        color: var(--berry);
+      }
+      .special-price small {
+        color: var(--ink-soft);
+        font-size: 0.9rem;
+      }
+      .special-pills {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.6rem;
+        margin-bottom: 1.9rem;
+      }
+      .special-pills .pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.45rem;
+        padding: 0.5rem 1rem;
+        border-radius: 100px;
+        background: var(--white);
+        border: 1px solid var(--hair);
+        box-shadow: var(--shadow-sm);
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: var(--ink-soft);
+      }
+      .special-pills .pill svg {
+        width: 15px;
+        height: 15px;
+        stroke: var(--rose-deep);
+        fill: none;
+        stroke-width: 1.9;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+      }
+
+      /* =========================================================
    STORY / ABOUT
    ========================================================= */
       .story {
@@ -1056,13 +1215,24 @@
       }
       .story .point .ic {
         flex: 0 0 auto;
-        width: 40px;
-        height: 40px;
-        border-radius: 12px;
+        width: 46px;
+        height: 46px;
+        border-radius: 14px;
         display: grid;
         place-items: center;
-        background: var(--cream-2);
-        font-size: 1.3rem;
+        background: linear-gradient(150deg, #fff, var(--cream-2));
+        border: 1px solid var(--hair);
+        color: var(--berry);
+        box-shadow: var(--shadow-sm);
+      }
+      .story .point .ic svg {
+        width: 22px;
+        height: 22px;
+        stroke: currentColor;
+        stroke-width: 1.7;
+        fill: none;
+        stroke-linecap: round;
+        stroke-linejoin: round;
       }
       .story .point b {
         font-weight: 700;
@@ -1097,12 +1267,14 @@
         padding: 2.2rem 1.6rem;
         border-radius: var(--radius);
         background: var(--white);
-        box-shadow: 0 10px 30px rgba(90, 58, 44, 0.06);
-        transition: transform 0.5s var(--ease);
+        border: 1px solid var(--hair);
+        box-shadow: var(--shadow-sm);
+        transition: transform 0.5s var(--ease), box-shadow 0.5s var(--ease);
         overflow: hidden;
       }
       .step:hover {
         transform: translateY(-8px);
+        box-shadow: var(--shadow-md);
       }
       .step::before {
         counter-increment: step;
@@ -1116,8 +1288,30 @@
         font-weight: 600;
       }
       .step .ic {
-        font-size: 2.4rem;
-        margin-bottom: 0.8rem;
+        width: 56px;
+        height: 56px;
+        border-radius: 18px;
+        display: grid;
+        place-items: center;
+        margin-bottom: 1.1rem;
+        color: var(--rose-deep);
+        background: linear-gradient(150deg, #fff5f7, #fde4ea);
+        border: 1px solid color-mix(in srgb, var(--rose-deep) 18%, transparent);
+        box-shadow: var(--shadow-sm);
+        transition: transform 0.5s var(--ease), color 0.4s var(--ease);
+      }
+      .step:hover .ic {
+        transform: translateY(-3px) rotate(-4deg);
+        color: var(--berry);
+      }
+      .step .ic svg {
+        width: 26px;
+        height: 26px;
+        stroke: currentColor;
+        stroke-width: 1.7;
+        fill: none;
+        stroke-linecap: round;
+        stroke-linejoin: round;
       }
       .step h4 {
         font-family: var(--font-head);
@@ -1159,13 +1353,27 @@
         }
       }
       .quote {
+        position: relative;
         background: rgba(255, 255, 255, 0.05);
         border: 1px solid rgba(255, 255, 255, 0.1);
         border-radius: var(--radius);
-        padding: 2rem;
+        padding: 2.4rem 2rem 2rem;
+        overflow: hidden;
         transition:
           transform 0.5s var(--ease),
           background 0.5s var(--ease);
+      }
+      .quote::before {
+        content: "\201C";
+        position: absolute;
+        top: -0.55rem;
+        right: 1.1rem;
+        font-family: var(--font-head);
+        font-size: 6rem;
+        line-height: 1;
+        color: var(--gold);
+        opacity: 0.18;
+        pointer-events: none;
       }
       .quote:hover {
         transform: translateY(-8px);
@@ -1245,17 +1453,30 @@
         font-weight: 500;
       }
       .contact-list .ic {
-        width: 46px;
-        height: 46px;
+        width: 48px;
+        height: 48px;
         border-radius: 14px;
-        background: var(--cream-2);
+        background: linear-gradient(150deg, #fff, var(--cream-2));
+        border: 1px solid var(--hair);
+        color: var(--berry);
         display: grid;
         place-items: center;
-        font-size: 1.3rem;
+        box-shadow: var(--shadow-sm);
         transition: 0.35s var(--ease);
       }
+      .contact-list .ic svg {
+        width: 22px;
+        height: 22px;
+        stroke: currentColor;
+        stroke-width: 1.7;
+        fill: none;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+      }
       .contact-list a:hover .ic {
-        background: var(--rose-deep);
+        background: var(--ink);
+        color: #fff;
+        border-color: var(--ink);
         transform: translateY(-3px);
       }
       .socials {
@@ -1267,11 +1488,22 @@
         width: 46px;
         height: 46px;
         border-radius: 50%;
-        border: 2px solid rgba(90, 58, 44, 0.18);
+        border: 1px solid var(--hair);
+        background: var(--white);
+        color: var(--ink);
         display: grid;
         place-items: center;
-        font-weight: 700;
+        box-shadow: var(--shadow-sm);
         transition: 0.35s var(--ease);
+      }
+      .socials a svg {
+        width: 20px;
+        height: 20px;
+        stroke: currentColor;
+        stroke-width: 1.8;
+        fill: none;
+        stroke-linecap: round;
+        stroke-linejoin: round;
       }
       .socials a:hover {
         background: var(--ink);
@@ -1282,9 +1514,10 @@
 
       .form {
         background: var(--white);
+        border: 1px solid var(--hair);
         border-radius: var(--radius);
         padding: clamp(1.6rem, 4vw, 2.6rem);
-        box-shadow: var(--shadow);
+        box-shadow: var(--shadow-md);
       }
       .form .field {
         position: relative;
@@ -1564,6 +1797,13 @@
         opacity: 0;
         pointer-events: none;
       }
+      /* JS dismisses the banner via the [hidden] attribute; the class
+         rule above never matched, and .cookie-banner's display:flex
+         overrode the UA [hidden] rule — so the banner could never close.
+         This attribute selector outranks display:flex and fixes that. */
+      .cookie-banner[hidden] {
+        display: none;
+      }
       .cookie-banner p {
         flex: 1;
         font-size: 0.88rem;
@@ -1640,6 +1880,7 @@
       <div class="nav-links" id="navLinks">
         <a href="#categories">Treats</a>
         <a href="#menu">Menu</a>
+        <a href="#specials">Specials</a>
         <a href="#story">Our Story</a>
         <a href="#reviews">Reviews</a>
         <a href="#order">Order</a>
@@ -1766,6 +2007,48 @@
       </div>
     </section>
 
+    <!-- ===================== SEASONAL SPECIAL ===================== -->
+    <section class="section special" id="specials">
+      <div class="container special-grid">
+        <div class="special-art" data-reveal>
+          <img
+            alt="Summer berry celebration cake with fresh strawberries and cream"
+            loading="lazy"
+            width="800"
+            height="600"
+            src="https://images.unsplash.com/photo-1565958011703-44f9829ba187?auto=format&fit=crop&w=800&q=80"
+          />
+          <span class="special-badge">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11"/></svg>
+            Chef's special
+          </span>
+        </div>
+        <div class="special-copy">
+          <span class="eyebrow" data-reveal>This season's special</span>
+          <h2 data-reveal data-delay="1">Summer Berry Celebration Cake</h2>
+          <p class="lead2" data-reveal data-delay="2">
+            Three layers of vanilla-bean sponge folded with fresh British strawberries, a cloud of
+            lightly whipped elderflower cream, and a crown of seasonal berries. Made in tiny batches
+            while summer fruit is at its sweetest.
+          </p>
+          <div class="special-price" data-reveal data-delay="2">
+            <span class="amt">£34.00</span><small>/ serves 10–12</small>
+          </div>
+          <div class="special-pills" data-reveal data-delay="3">
+            <span class="pill">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .962 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.962 0z"/></svg>
+              Limited summer batch
+            </span>
+            <span class="pill">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              48h pre-order
+            </span>
+          </div>
+          <a href="#order" class="btn alt" data-reveal data-delay="3"><span>Pre-order this special</span></a>
+        </div>
+      </div>
+    </section>
+
     <!-- ===================== STORY ===================== -->
     <section class="section story" id="story">
       <div class="container story-grid">
@@ -1796,7 +2079,7 @@
           </p>
           <div class="points">
             <div class="point" data-reveal data-delay="3">
-              <span class="ic">🌾</span>
+              <span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 20h10"/><path d="M10 20c5.5-2.5.8-6.4 3-10"/><path d="M9.5 9.4c1.1.8 1.8 2.2 2.3 3.7-2 .4-3.5.4-4.8-.3-1.2-.6-2.3-1.9-3-4.2 2.8-.5 4.4 0 5.5.8z"/><path d="M14.1 6a7 7 0 0 0-1.1 4c1.9-.1 3.3-.6 4.3-1.4 1-1 1.6-2.3 1.7-4.6-2.7.1-4 1-4.9 2z"/></svg></span>
               <div>
                 <b>Fresh ingredients</b><br /><span
                   >Real butter &amp; premium chocolate, every single time.</span
@@ -1804,7 +2087,7 @@
               </div>
             </div>
             <div class="point" data-reveal data-delay="3">
-              <span class="ic">🎨</span>
+              <span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="13.5" cy="6.5" r=".6" fill="currentColor" stroke="none"/><circle cx="17.5" cy="10.5" r=".6" fill="currentColor" stroke="none"/><circle cx="8.5" cy="7.5" r=".6" fill="currentColor" stroke="none"/><circle cx="6.5" cy="12.5" r=".6" fill="currentColor" stroke="none"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"/></svg></span>
               <div>
                 <b>Fully customisable</b><br /><span
                   >Your flavours, colours &amp; message — your way.</span
@@ -1812,7 +2095,7 @@
               </div>
             </div>
             <div class="point" data-reveal data-delay="4">
-              <span class="ic">📦</span>
+              <span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m7.5 4.27 9 5.15"/><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg></span>
               <div>
                 <b>Made to order</b><br /><span
                   >Baked the day it reaches you, never sitting on a shelf.</span
@@ -1833,22 +2116,22 @@
         </div>
         <div class="steps-grid">
           <div class="step" data-reveal data-delay="1">
-            <div class="ic">📝</div>
+            <div class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M12 11h4"/><path d="M12 16h4"/><path d="M8 11h.01"/><path d="M8 16h.01"/></svg></div>
             <h4>Pick your treats</h4>
             <p>Browse the menu and choose your favourites or a custom design.</p>
           </div>
           <div class="step" data-reveal data-delay="2">
-            <div class="ic">💬</div>
+            <div class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></svg></div>
             <h4>Place the order</h4>
             <p>Send details &amp; date through the form, WhatsApp or a call.</p>
           </div>
           <div class="step" data-reveal data-delay="3">
-            <div class="ic">👩‍🍳</div>
+            <div class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17 21a1 1 0 0 0 1-1v-5.35c0-.457.316-.844.727-1.041a4 4 0 0 0-2.134-7.589 5 5 0 0 0-9.186 0 4 4 0 0 0-2.134 7.588c.411.198.727.585.727 1.041V20a1 1 0 0 0 1 1Z"/><path d="M6 17h12"/></svg></div>
             <h4>We bake fresh</h4>
             <p>Everything is freshly made in small batches, just for you.</p>
           </div>
           <div class="step" data-reveal data-delay="4">
-            <div class="ic">🚪</div>
+            <div class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"/><path d="M15 18H9"/><path d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.624l-3.48-4.35A1 1 0 0 0 17.52 8H14"/><circle cx="17" cy="18" r="2"/><circle cx="7" cy="18" r="2"/></svg></div>
             <h4>Pickup or delivery</h4>
             <p>Collect warm from home or get it delivered nearby.</p>
           </div>
@@ -1913,26 +2196,26 @@
           </p>
           <div class="contact-list" data-reveal data-delay="3">
             <a href="https://wa.me/447000000000" target="_blank" rel="noopener"
-              ><span class="ic">💬</span>
+              ><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></svg></span>
               <div>WhatsApp<br /><small>+44 7000 000000</small></div></a
             >
             <a href="tel:+447000000000"
-              ><span class="ic">📞</span>
+              ><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13.832 16.568a1 1 0 0 0 1.213-.303l.355-.465A2 2 0 0 1 17 15h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2A18 18 0 0 1 2 4a2 2 0 0 1 2-2h3a2 2 0 0 1 2 2v3a2 2 0 0 1-.8 1.6l-.468.351a1 1 0 0 0-.292 1.233 14 14 0 0 0 6.392 6.384"/></svg></span>
               <div>Call us<br /><small>+44 7000 000000</small></div></a
             >
             <a href="mailto:hello@bakedbyprii.com"
-              ><span class="ic">✉️</span>
+              ><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg></span>
               <div>Email<br /><small>hello@bakedbyprii.com</small></div></a
             >
             <div>
-              <span class="ic">📍</span>
+              <span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/><circle cx="12" cy="10" r="3"/></svg></span>
               <div>Didcot, Oxfordshire<br /><small>Pickup &amp; local delivery</small></div>
             </div>
           </div>
           <div class="socials" data-reveal data-delay="4">
-            <a href="#" aria-label="Instagram">Ig</a>
-            <a href="#" aria-label="Facebook">Fb</a>
-            <a href="#" aria-label="WhatsApp">Wa</a>
+            <a href="#" aria-label="Instagram"><svg viewBox="0 0 24 24" aria-hidden="true"><rect width="20" height="20" x="2" y="2" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" x2="17.51" y1="6.5" y2="6.5"/></svg></a>
+            <a href="#" aria-label="Facebook"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg></a>
+            <a href="https://wa.me/447000000000" aria-label="WhatsApp"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></svg></a>
           </div>
         </div>
 
