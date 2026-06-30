@@ -1,0 +1,18 @@
+{
+  "name": "bakedbypri",
+  "version": "1.0.0",
+  "private": true,
+  "description": "bakedbyPri — home bakery storefront with an order backend (Express + built-in SQLite).",
+  "type": "module",
+  "main": "server.js",
+  "scripts": {
+    "start": "node --no-warnings server.js",
+    "dev": "node --no-warnings --watch server.js"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "dependencies": {
+    "express": "^4.21.2"
+  }
+}
