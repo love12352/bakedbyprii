@@ -1,4 +1,4 @@
-// bakedbyPri backend — serves the storefront + admin, and handles orders.
+// bakedbyPrii backend — serves the storefront + admin, and handles orders.
 import express from 'express';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -9,7 +9,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 
 // ---- Config (override with environment variables) ----
 const PORT = process.env.PORT || 3000;
-const ADMIN_KEY = process.env.ADMIN_KEY || 'bakedbypri-admin';   // CHANGE THIS before going live
+const ADMIN_KEY = process.env.ADMIN_KEY || 'bakedbyprii-admin';   // CHANGE THIS before going live
 const DELIVERY_FEE = Number(process.env.DELIVERY_FEE ?? 2.5);
 const FREE_DELIVERY_OVER = Number(process.env.FREE_DELIVERY_OVER ?? 20);
 const DELIVERY_POSTCODE = /^OX11/i;                              // Didcot
@@ -120,7 +120,7 @@ app.patch('/api/admin/orders/:ref', requireAdmin, (req, res) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`\n  🧁  bakedbyPri running`);
+  console.log(`\n  🧁  bakedbyPrii running`);
   console.log(`      Storefront →  http://localhost:${PORT}`);
   console.log(`      Admin      →  http://localhost:${PORT}/admin   (key: ${ADMIN_KEY})\n`);
 });

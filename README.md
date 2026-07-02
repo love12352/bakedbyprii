@@ -1,4 +1,4 @@
-# bakedbyPri 🧁
+# bakedbyPrii 🧁
 
 A home-bakery website **and** order backend for a Didcot-based business.
 Single-page storefront, a real order system with a SQLite database, and an admin dashboard.
@@ -26,7 +26,7 @@ Then open:
 - **Storefront:** http://localhost:3000
 - **Admin dashboard:** http://localhost:3000/admin
 
-The admin key defaults to `bakedbypri-admin` — **change it** (see Configuration).
+The admin key defaults to `bakedbyprii-admin` — **change it** (see Configuration).
 
 That's it. Place a test order on the storefront and watch it appear in the admin dashboard.
 
@@ -59,7 +59,7 @@ Copy `.env.example` to `.env` and edit (all optional):
 | Variable | Default | Purpose |
 |---|---|---|
 | `PORT` | `3000` | Server port |
-| `ADMIN_KEY` | `bakedbypri-admin` | **Change this** — the key for `/admin` |
+| `ADMIN_KEY` | `bakedbyprii-admin` | **Change this** — the key for `/admin` |
 | `DELIVERY_FEE` | `2.50` | Didcot delivery charge |
 | `FREE_DELIVERY_OVER` | `20` | Free delivery over this order value |
 | `SMTP_*`, `ORDER_NOTIFY_TO` | — | Optional email alerts for new orders (`npm install nodemailer`) |
