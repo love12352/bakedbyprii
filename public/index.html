@@ -36,6 +36,7 @@
             height: 100vh;
             transition: background 1.2s cubic-bezier(0.4, 0, 0.2, 1);
         }
+        body.sheet-open { overflow: hidden; }
         body.theme-cakes    { --bg-inner: #b03a5b; --bg-mid: #5e1f33; --bg-outer: #1a0a10; }
         body.theme-cookies  { --bg-inner: #a86b32; --bg-mid: #5a3417; --bg-outer: #170d05; }
         body.theme-cupcakes { --bg-inner: #7b4fa8; --bg-mid: #3d2459; --bg-outer: #100817; }
@@ -190,7 +191,7 @@
         .sheet.open { display: flex; }
         .sheet-backdrop { position: absolute; inset: 0; background: rgba(8, 3, 6, 0.55); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); opacity: 0; }
         .sheet-panel {
-            position: relative; width: 100%; max-width: 1040px; max-height: 86vh; overflow-y: auto;
+            position: relative; width: 100%; max-width: 1040px; max-height: 86vh; overflow-y: auto; overscroll-behavior: contain;
             background: rgba(255, 255, 255, 0.07); border: 1px solid rgba(255, 255, 255, 0.18); border-radius: 30px;
             box-shadow: 0 40px 90px rgba(0, 0, 0, 0.55); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
             padding: 2.4rem clamp(1.4rem, 3vw, 3rem) 3rem; opacity: 0;
@@ -343,6 +344,60 @@
             .carousel-cards { flex-wrap: wrap; justify-content: center; }
             .site-footer .biz { max-width: 100%; }
             .form { grid-template-columns: 1fr; }
+        }
+
+        /* ---------- Mobile ---------- */
+        @media (max-width: 640px) {
+            html, body { overflow-x: hidden; }
+            body { height: auto; min-height: 100vh; min-height: 100dvh; overflow-y: auto; }
+
+            /* Header: logo + order button on top, scrollable pill nav below */
+            .header { padding: 0.8rem 4% 0.6rem; }
+            .logo { font-size: 1.15rem; }
+            .logo svg { width: 26px; height: 26px; }
+            .contact-btn { padding: 0.65rem 1.2rem; font-size: 0.78rem; }
+            .nav { max-width: 100%; flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
+            .nav::-webkit-scrollbar { display: none; }
+            .nav-item { padding: 0.45rem 0.85rem; font-size: 0.78rem; white-space: nowrap; }
+
+            /* Hero flows and scrolls instead of clipping */
+            .hero { height: auto; min-height: 100vh; min-height: 100dvh; padding: 0 5%; }
+            .hero-content { height: auto; padding-top: 8rem; padding-bottom: 1.5rem; gap: 1.1rem; }
+            .hero-left { gap: 1.2rem; }
+            .main-title { font-size: 3rem; }
+            .side-title { font-size: 2.1rem; }
+            .description { font-size: 0.95rem; max-width: 100%; }
+            .description br { display: none; }
+            .product-tilt { width: min(68vw, 38vh); height: min(68vw, 38vh); }
+
+            /* Three compact carousel cards in one row */
+            .product-carousel { align-items: center; }
+            .carousel-cards { flex-wrap: nowrap; gap: 0.7rem; }
+            .card { width: 104px; padding: 0.8rem 0.6rem 1rem; padding-top: 3.2rem; border-radius: 22px; }
+            .card img { width: 84px; height: 84px; margin-top: -4.2rem; }
+            .card-info { font-size: 0.66rem; }
+
+            /* Footer sits in the page flow so it never covers content */
+            .site-footer {
+                position: static; flex-direction: column; align-items: flex-start; gap: 0.9rem;
+                padding: 1.3rem 6% 1.6rem; background: rgba(0, 0, 0, 0.35); font-size: 0.74rem;
+            }
+            .footer-links { gap: 0.4rem 1rem; }
+
+            /* Sheets: start below the taller wrapped header, near-fullscreen panel */
+            .sheet { align-items: flex-start; padding: 8rem 3% 1rem; }
+            .sheet-panel {
+                max-height: calc(100vh - 9rem); max-height: calc(100dvh - 9rem);
+                border-radius: 22px; padding: 1.6rem 1.1rem 2rem;
+            }
+            .sheet-title { font-size: 2.2rem; }
+            .menu-grid { grid-template-columns: 1fr; }
+            .review-grid { grid-template-columns: 1fr; }
+            .fulfil-toggle { grid-template-columns: 1fr; }
+
+            /* 16px inputs stop iOS zooming the page on focus; bigger tap targets */
+            .form input, .form textarea, .form select { font-size: 16px; }
+            .qty button { width: 32px; height: 32px; }
         }
     </style>
 </head>
@@ -685,7 +740,7 @@
             m.style.opacity = Math.random() * 0.4 + 0.2;
             const d = Math.random() * 6 + 4; m.style.animation = `floatUpImg ${d}s linear forwards`;
             dustContainer.appendChild(m); setTimeout(() => m.remove(), d * 1000);
-        }, 400);
+        }, matchMedia('(max-width: 640px)').matches ? 900 : 400);
 
         /* =========================================================
            Sheet / page navigation with eye-catching transitions
@@ -697,6 +752,7 @@
             const sheet = document.getElementById(id);
             if (!sheet) return;
             openId = id;
+            document.body.classList.add('sheet-open');
             sheet.classList.add('open');
             const backdrop = sheet.querySelector('.sheet-backdrop');
             const panel = sheet.querySelector('.sheet-panel');
@@ -712,6 +768,7 @@
             if (!openId) return;
             const sheet = document.getElementById(openId);
             openId = null; syncNav('home');
+            document.body.classList.remove('sheet-open');
             if (!sheet) return;
             const backdrop = sheet.querySelector('.sheet-backdrop');
             const panel = sheet.querySelector('.sheet-panel');
