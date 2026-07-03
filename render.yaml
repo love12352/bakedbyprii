@@ -1,0 +1,32 @@
+# Render Blueprint — deploys bakedbyPrii as a free web service.
+# In Render: New + → Blueprint → pick this repo. Render reads this file.
+services:
+  - type: web
+    name: bakedbyprii
+    runtime: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /
+    autoDeploy: true
+    envVars:
+      # Node 22+ is required (the app uses node:sqlite).
+      - key: NODE_VERSION
+        value: "22"
+      # Admin dashboard key for /admin — set your own secret value in Render.
+      - key: ADMIN_KEY
+        sync: false
+      # Optional: email notifications for new orders. Fill these in Render to
+      # get every order in your inbox (recommended on the free plan).
+      - key: SMTP_HOST
+        sync: false
+      - key: SMTP_PORT
+        value: "587"
+      - key: SMTP_USER
+        sync: false
+      - key: SMTP_PASS
+        sync: false
+      - key: SMTP_FROM
+        sync: false
+      - key: ORDER_NOTIFY_TO
+        sync: false
