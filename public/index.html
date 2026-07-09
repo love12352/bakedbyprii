@@ -851,7 +851,8 @@
                 <p>We currently deliver <strong>within Didcot (OX11) only</strong>. Delivery is <strong>free on orders over £20</strong>; otherwise a £2.50 charge applies. Delivery dates and time windows are agreed when your order is confirmed. If you're outside Didcot, you're very welcome to collect from us.</p>
                 <h3>Your right to cancel (perishable & bespoke goods)</h3>
                 <p>Under the Consumer Contracts (Information, Cancellation and Additional Charges) Regulations 2013, the standard 14-day "cooling-off" right to cancel <strong>does not apply</strong> to goods that are perishable or made to your specification — which includes our freshly baked and personalised products.</p>
-                <p>You may amend or cancel a standard order up to <strong>48 hours</strong> before the agreed date for a full refund. Bespoke and custom orders may be subject to a deposit and cancellation terms set out at the time of order.</p>
+                <p><strong>Before we accept your order:</strong> while your order is still awaiting confirmation, you can cancel it instantly and free of charge using the <strong>"Cancel my order"</strong> link in your confirmation email — no payment will have been taken.</p>
+                <p><strong>After we've accepted your order:</strong> please <a href="mailto:BakedbyPrii@gmail.com">contact us</a> to cancel. If you cancel a standard order more than <strong>48 hours</strong> before the agreed date, we'll refund any payment in full. For cancellations within 48 hours of the date, or for bespoke and custom orders (which may require a deposit), we may be unable to offer a full refund, as ingredients and preparation may already be under way.</p>
                 <h3>If something is wrong</h3>
                 <p>Your statutory rights under the Consumer Rights Act 2015 are not affected. If your order is faulty, not as described, or of unsatisfactory quality, please contact us within <strong>24 hours</strong> (ideally with a photo) and we will arrange a replacement or refund as appropriate. As the goods are perishable, please keep the product and packaging until we've resolved it.</p>
                 <p>Contact: <a href="mailto:BakedbyPrii@gmail.com">BakedbyPrii@gmail.com</a> · <a href="tel:+447732262999">+44 7732 262999</a>.</p>` },
@@ -1047,7 +1048,7 @@
                     const res = await fetch('/api/orders', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
                     const data = await res.json().catch(() => ({}));
                     if (!res.ok || !data.ok) throw new Error(data.error || 'Sorry, something went wrong placing your order. Please try again or contact us.');
-                    confirmOrder({ name: val('co-name'), ref: data.ref, total: data.total, fee: data.delivery_fee, method });
+                    confirmOrder({ name: val('co-name'), email: val('co-email'), ref: data.ref, total: data.total, fee: data.delivery_fee, method });
                 } catch (e) {
                     placeBtn.disabled = false; placeBtn.textContent = 'Place order';
                     fail(e.message || 'Network error — please check your connection and try again.');
@@ -1056,6 +1057,7 @@
 
             function confirmOrder(o) {
                 const ref = o.ref;
+                const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
                 const lines = Object.entries(cart).map(([id, q]) => { const it = byId(id); return `<div class="sl"><span>${q} × ${it.n}</span><span>${gbp(it.p * q)}</span></div>`; }).join('');
                 const where = fulfil === 'delivery' ? 'delivery' : 'collection';
                 let pay;
@@ -1073,6 +1075,7 @@
                 box.innerHTML = `<div class="tick">✓</div>
                     <h3 style="font-family:var(--font-heading);font-size:1.9rem;margin-bottom:0.4rem">Thank you, ${o.name.split(' ')[0]}!</h3>
                     <p class="muted">Your order request <strong>${ref}</strong> is in. We'll confirm availability and your ${where} time by email within 1 working day. <strong>No payment has been taken yet.</strong></p>
+                    <p class="muted" style="margin-top:0.4rem">We've emailed your confirmation to <strong>${esc(o.email)}</strong> — you can cancel your order for free from that email any time before we accept it.</p>
                     <div class="pay-instructions"><div class="summary-lines">${lines}
                         <div class="sl"><span>${fulfil === 'delivery' ? 'Delivery' : 'Collection'}</span><span>${o.fee ? gbp(o.fee) : 'Free'}</span></div>
                         <div class="sl" style="font-weight:700;color:#fff;border-top:1px solid var(--glass-border);margin-top:0.3rem;padding-top:0.5rem"><span>Total</span><span>${gbp(o.total)}</span></div></div>

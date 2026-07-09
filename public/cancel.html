@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cancel your order · bakedbyPrii</title>
+    <meta name="robots" content="noindex">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Galada&display=swap" rel="stylesheet">
+    <style>
+        :root { --accent: #fbcfe8; --ink: #2a0d18; --muted: #6b4a56; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', sans-serif; color: var(--ink); min-height: 100vh;
+            background: radial-gradient(circle at 30% 0%, #fde7f1 0%, #faf5f2 55%, #f6ede9 100%);
+            display: flex; align-items: center; justify-content: center; padding: 1.5rem;
+        }
+        .card {
+            width: 100%; max-width: 460px; background: #fff; border: 1px solid #f0e2e8;
+            border-radius: 22px; padding: 2rem 1.8rem; box-shadow: 0 20px 50px rgba(90, 20, 50, 0.12);
+        }
+        .logo { font-family: 'Galada', cursive; font-size: 1.7rem; text-align: center; margin-bottom: 0.3rem; }
+        h1 { font-size: 1.3rem; margin-bottom: 0.4rem; }
+        p { color: var(--muted); font-size: 0.92rem; line-height: 1.55; }
+        .summary { background: #faf5f2; border-radius: 14px; padding: 1rem 1.1rem; margin: 1.2rem 0; font-size: 0.9rem; }
+        .summary .meta { color: var(--muted); font-size: 0.82rem; margin-bottom: 0.7rem; }
+        .sl { display: flex; justify-content: space-between; padding: 0.2rem 0; }
+        .sl.total { font-weight: 700; border-top: 1px solid #eadfe3; margin-top: 0.4rem; padding-top: 0.5rem; }
+        .actions { display: flex; flex-direction: column; gap: 0.7rem; margin-top: 1.3rem; }
+        .btn {
+            border: none; border-radius: 100px; padding: 0.85rem 1.4rem; font-weight: 700;
+            font-size: 0.92rem; font-family: inherit; cursor: pointer; text-align: center; text-decoration: none;
+        }
+        .btn.danger { background: var(--ink); color: #fff; }
+        .btn.ghost { background: transparent; color: var(--ink); border: 1px solid #e6d3da; }
+        .btn:disabled { opacity: 0.55; cursor: default; }
+        .badge { display: inline-block; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em;
+            padding: 0.2rem 0.55rem; border-radius: 6px; font-weight: 700; background: var(--accent); color: var(--ink); }
+        .center { text-align: center; }
+        .tick { width: 54px; height: 54px; border-radius: 50%; background: var(--accent); color: var(--ink);
+            display: flex; align-items: center; justify-content: center; font-size: 1.6rem; margin: 0 auto 0.9rem; }
+        .hidden { display: none !important; }
+        a.link { color: #c2456e; }
+    </style>
+</head>
+
+<body>
+    <div class="card">
+        <div class="logo">bakedbyPrii</div>
+
+        <div id="loading" class="center"><p>Loading your order…</p></div>
+
+        <!-- Invalid / expired link -->
+        <div id="invalid" class="hidden center">
+            <h1 style="margin-top:0.6rem">We couldn't find that order</h1>
+            <p>This cancellation link looks invalid or has expired. If you need to change or cancel an order,
+               email <a class="link" href="mailto:BakedbyPrii@gmail.com">BakedbyPrii@gmail.com</a>
+               or call <a class="link" href="tel:+447732262999">+44 7732 262999</a>.</p>
+        </div>
+
+        <!-- Order found -->
+        <div id="found" class="hidden">
+            <h1 id="f-title">Cancel your order</h1>
+            <p id="f-sub"></p>
+            <div class="summary" id="f-summary"></div>
+            <div class="actions" id="f-actions"></div>
+            <p id="f-err" class="hidden" style="color:#b3234a;margin-top:0.8rem"></p>
+        </div>
+
+        <!-- Cancelled just now -->
+        <div id="done" class="hidden center">
+            <div class="tick">✓</div>
+            <h1>Order cancelled</h1>
+            <p>Your order <strong id="d-ref"></strong> has been cancelled and we've emailed you a confirmation.
+               If you'd already paid, we'll refund you in line with our cancellation policy.</p>
+            <div class="actions"><a class="btn ghost" href="/">Back to bakedbyPrii</a></div>
+        </div>
+    </div>
+
+    <script>
+        const $ = s => document.querySelector(s);
+        const gbp = n => '£' + Number(n || 0).toFixed(2);
+        const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+        const params = new URLSearchParams(location.search);
+        const ref = params.get('ref') || '';
+        const token = params.get('token') || '';
+
+        function show(id) { ['loading', 'invalid', 'found', 'done'].forEach(x => $('#' + x).classList.toggle('hidden', x !== id)); }
+
+        function summaryHtml(o) {
+            const where = o.fulfilment === 'delivery' ? `Delivery to ${esc(o.address)}, ${esc(o.postcode)}` : 'Collection from home';
+            const items = o.items.map(i => `<div class="sl"><span>${i.qty} × ${esc(i.name)}</span><span>${gbp(i.price * i.qty)}</span></div>`).join('');
+            const delivery = o.fulfilment === 'delivery' ? (o.delivery_fee ? gbp(o.delivery_fee) : 'Free') : 'Free (collection)';
+            return `<div class="meta">Order <strong>${esc(o.ref)}</strong> · ${where}<br>Wanted: ${esc(o.required_date)}</div>
+                ${items}
+                <div class="sl"><span>${o.fulfilment === 'delivery' ? 'Delivery' : 'Collection'}</span><span>${delivery}</span></div>
+                <div class="sl total"><span>Total</span><span>${gbp(o.total)}</span></div>`;
+        }
+
+        async function load() {
+            if (!ref || !token) return show('invalid');
+            try {
+                const res = await fetch(`/api/orders/${encodeURIComponent(ref)}?token=${encodeURIComponent(token)}`);
+                const data = await res.json().catch(() => ({}));
+                if (!res.ok || !data.ok) return show('invalid');
+                render(data.order);
+                show('found');
+            } catch (e) { show('invalid'); }
+        }
+
+        function render(o) {
+            $('#f-summary').innerHTML = summaryHtml(o);
+            const actions = $('#f-actions');
+            if (o.cancellable) {
+                $('#f-title').textContent = `Cancel this order, ${esc(o.name)}?`;
+                $('#f-sub').innerHTML = 'Your order is still awaiting our confirmation, so you can cancel it now free of charge. No payment has been taken.';
+                actions.innerHTML = `<button class="btn danger" id="confirm">Yes, cancel my order</button>
+                    <a class="btn ghost" href="/">No, keep my order</a>`;
+                $('#confirm').addEventListener('click', doCancel);
+            } else {
+                $('#f-title').innerHTML = `Order ${esc(o.ref)} <span class="badge">${esc(o.status)}</span>`;
+                $('#f-sub').innerHTML = o.status === 'cancelled'
+                    ? 'This order has already been cancelled.'
+                    : "We've already accepted this order, so it can't be cancelled online. To cancel or change it, please email <a class='link' href='mailto:BakedbyPrii@gmail.com'>BakedbyPrii@gmail.com</a> or call <a class='link' href='tel:+447732262999'>+44 7732 262999</a> and we'll help.";
+                actions.innerHTML = `<a class="btn ghost" href="/">Back to bakedbyPrii</a>`;
+            }
+        }
+
+        async function doCancel() {
+            const btn = $('#confirm'); const err = $('#f-err');
+            err.classList.add('hidden');
+            btn.disabled = true; btn.textContent = 'Cancelling…';
+            try {
+                const res = await fetch(`/api/orders/${encodeURIComponent(ref)}/cancel`, {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ token })
+                });
+                const data = await res.json().catch(() => ({}));
+                if (!res.ok || !data.ok) throw new Error(data.error || 'Sorry, something went wrong. Please try again or contact us.');
+                $('#d-ref').textContent = ref;
+                show('done');
+            } catch (e) {
+                btn.disabled = false; btn.textContent = 'Yes, cancel my order';
+                err.textContent = e.message; err.classList.remove('hidden');
+            }
+        }
+
+        load();
+    </script>
+</body>
+
+</html>

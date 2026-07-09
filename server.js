@@ -2,8 +2,8 @@
 import express from 'express';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { getMenu, getMenuItem, createOrder, listOrders, setOrderStatus } from './lib/db.js';
-import { notifyNewOrder } from './lib/mailer.js';
+import { getMenu, getMenuItem, createOrder, listOrders, setOrderStatus, getOrder } from './lib/db.js';
+import { notifyNewOrder, sendOrderPlaced, sendStatusEmail, notifyAdminCancelled } from './lib/mailer.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -78,13 +78,15 @@ app.post('/api/orders', (req, res) => {
       name, email, phone, notes, fulfilment, address, postcode,
       required_date: date, payment, subtotal, delivery_fee, total
     };
-    let ref;
+    let ref, cancel_token;
     for (let attempt = 0; attempt < 6; attempt++) {
       ref = genRef();
-      try { createOrder({ ...order, ref }, items); break; }
+      try { cancel_token = createOrder({ ...order, ref }, items); break; }
       catch (e) { if (attempt === 5) throw e; }
     }
 
+    const base = baseUrl(req);
+    sendOrderPlaced({ ...order, ref, cancel_token, items }, base).catch(() => {});
     notifyNewOrder({ ...order, ref, items }).catch(() => {});
     console.log(`[order] ${ref} · ${fulfilment} · £${total.toFixed(2)} · ${payment} · ${name}`);
 
@@ -93,6 +95,47 @@ app.post('/api/orders', (req, res) => {
     console.error('[order error]', e);
     res.status(500).json({ ok: false, error: 'Something went wrong on our side. Please try again or contact us.' });
   }
+});
+
+// ---- Customer self-service: view + cancel one's own order (token-gated) ----
+// The cancel token is a per-order secret, only ever shared in that order's email.
+function loadTokenedOrder(req) {
+  const token = String(req.query.token || req.body?.token || '');
+  const order = getOrder(req.params.ref);
+  if (!order || !order.cancel_token || !token || order.cancel_token !== token) return null;
+  return order;
+}
+
+// Safe, read-only view for the cancel page (no other customers' data, no token).
+function publicOrderView(o) {
+  return {
+    ref: o.ref, name: String(o.name || '').split(' ')[0], status: o.status,
+    fulfilment: o.fulfilment, address: o.address, postcode: o.postcode,
+    required_date: o.required_date, payment: o.payment,
+    subtotal: o.subtotal, delivery_fee: o.delivery_fee, total: o.total,
+    items: o.items, created_at: o.created_at,
+    cancellable: o.status === 'new'
+  };
+}
+
+app.get('/api/orders/:ref', (req, res) => {
+  const order = loadTokenedOrder(req);
+  if (!order) return res.status(404).json({ ok: false, error: 'Order not found or link is invalid.' });
+  res.json({ ok: true, order: publicOrderView(order) });
+});
+
+app.post('/api/orders/:ref/cancel', (req, res) => {
+  const order = loadTokenedOrder(req);
+  if (!order) return res.status(404).json({ ok: false, error: 'Order not found or link is invalid.' });
+  if (order.status !== 'new') {
+    return bad(res, "This order can no longer be cancelled online. Please contact us at BakedbyPrii@gmail.com or +44 7732 262999 and we'll help.");
+  }
+  setOrderStatus(order.ref, 'cancelled');
+  const updated = getOrder(order.ref);
+  sendStatusEmail(updated, 'cancelled', baseUrl(req)).catch(() => {});
+  notifyAdminCancelled(updated).catch(() => {});
+  console.log(`[cancel] ${order.ref} cancelled by customer`);
+  res.json({ ok: true });
 });
 
 // ---- Admin API (header: x-admin-key) ----
@@ -114,8 +157,12 @@ app.get('/api/admin/orders', requireAdmin, (_req, res) => {
 app.patch('/api/admin/orders/:ref', requireAdmin, (req, res) => {
   const status = String(req.body?.status || '');
   if (!STATUSES.includes(status)) return bad(res, 'Invalid status.');
-  const updated = setOrderStatus(req.params.ref, status);
-  if (!updated) return res.status(404).json({ ok: false, error: 'Order not found.' });
+  const existing = getOrder(req.params.ref);
+  if (!existing) return res.status(404).json({ ok: false, error: 'Order not found.' });
+  if (existing.status === status) return res.json({ ok: true, unchanged: true }); // no-op, no email
+  setOrderStatus(req.params.ref, status);
+  const updated = getOrder(req.params.ref);
+  sendStatusEmail(updated, status, baseUrl(req)).catch(() => {}); // confirmed / completed / cancelled
   res.json({ ok: true });
 });
 
@@ -126,6 +173,13 @@ app.listen(PORT, () => {
 });
 
 // ---- helpers ----
+// Absolute site origin for links inside emails. Prefers PUBLIC_URL (set this in
+// production so links point at your real domain), else derives from the request.
+function baseUrl(req) {
+  if (process.env.PUBLIC_URL) return process.env.PUBLIC_URL.replace(/\/+$/, '');
+  const proto = req.get('x-forwarded-proto') || req.protocol;
+  return `${proto}://${req.get('host')}`;
+}
 function bad(res, error) { return res.status(400).json({ ok: false, error }); }
 function round2(n) { return Math.round((n + Number.EPSILON) * 100) / 100; }
 function genRef() {
