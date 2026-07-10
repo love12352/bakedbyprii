@@ -3,7 +3,7 @@ import express from 'express';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { getMenu, getMenuItem, createOrder, listOrders, setOrderStatus, getOrder } from './lib/db.js';
-import { notifyNewOrder, sendOrderPlaced, sendStatusEmail, notifyAdminCancelled, verifyMailer } from './lib/mailer.js';
+import { notifyNewOrder, sendOrderPlaced, sendStatusEmail, notifyAdminCancelled } from './lib/mailer.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -26,15 +26,6 @@ app.get('/admin', (_req, res) => res.sendFile(join(__dirname, 'public', 'admin.h
 app.get('/api/menu', (_req, res) => res.json({ ok: true, menu: getMenu() }));
 
 app.get('/api/health', (_req, res) => res.json({ ok: true, time: new Date().toISOString() }));
-
-// Temporary email diagnostics (remove once email is confirmed working).
-// Admin-gated. Reports which SMTP vars are set and whether Gmail accepts the login.
-app.get('/api/diag', async (req, res) => {
-  const key = req.get('x-admin-key') || req.query.key || '';
-  if (key !== ADMIN_KEY) return res.status(401).json({ ok: false, error: 'Unauthorised' });
-  const mailer = await verifyMailer();
-  res.json({ ok: true, build: 'diag-1', node: process.version, mailer });
-});
 
 app.post('/api/orders', (req, res) => {
   try {
