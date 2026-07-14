@@ -1,0 +1,47 @@
+{# Shown after a successful order. `order` is the full order dict from Python.
+   Payment next-steps vary by method — chosen with {% if %} below. #}
+{% extends "base.html" %}
+{% block title %}Order {{ order.ref }} · bakedbyPrii{% endblock %}
+
+{% block content %}
+<section class="section">
+    <div class="tick">✓</div>
+    <h2 class="section-title">Thank you, {{ order.name.split(' ')[0] }}!</h2>
+    <p class="lead">Your order request <strong>{{ order.ref }}</strong> is in. We'll confirm availability and your
+        {{ 'delivery' if order.fulfilment == 'delivery' else 'collection' }} time by email within 1 working day.
+        <strong>No payment has been taken yet.</strong></p>
+    <p class="muted">We've emailed your confirmation to <strong>{{ order.email }}</strong> — you can cancel your order for
+        free from that email any time before we accept it.</p>
+
+    <div class="pay-instructions">
+        <div class="summary" style="position:static;background:none;border:none;padding:0">
+            {% for line in order['items'] %}
+            <div class="sl"><span>{{ line.qty }} × {{ line.name }}</span><span>£{{ '%.2f' | format(line.price * line.qty) }}</span></div>
+            {% endfor %}
+            <div class="sl"><span>{{ 'Delivery' if order.fulfilment == 'delivery' else 'Collection' }}</span>
+                <span>{% if order.delivery_fee %}£{{ '%.2f' | format(order.delivery_fee) }}{% else %}Free{% endif %}</span></div>
+            <div class="row total"><span>Total</span><span>£{{ '%.2f' | format(order.total) }}</span></div>
+        </div>
+
+        <hr style="border-color:var(--glass-border);margin:1rem 0">
+
+        {% if order.payment == 'cash' %}
+            <p><strong>Pay in person:</strong> please have <strong>£{{ '%.2f' | format(order.total) }}</strong> in cash ready for
+               {{ 'delivery' if order.fulfilment == 'delivery' else 'collection' }}.</p>
+        {% elif order.payment == 'bank' %}
+            <p><strong>Bank transfer</strong> — please send <strong>£{{ '%.2f' | format(order.total) }}</strong> to:</p>
+            <p>Account name: <span class="ph">[Account name]</span><br>
+               Sort code: <span class="ph">[00-00-00]</span> · Account no: <span class="ph">[00000000]</span><br>
+               Reference: <strong>{{ order.ref }}</strong></p>
+        {% elif order.payment == 'card' %}
+            <p><strong>Pay by card</strong> using our secure link (your card details never touch this site).</p>
+            <p class="ph">[Add your Stripe / SumUp payment link]</p>
+        {% else %}
+            <p><strong>PayPal</strong> — pay securely via our PayPal link once your order is confirmed.</p>
+            <p class="ph">[Add your PayPal.Me link]</p>
+        {% endif %}
+    </div>
+
+    <a class="btn" href="{{ url_for('menu') }}">Start a new order</a>
+</section>
+{% endblock %}

@@ -1,0 +1,79 @@
+{# Checkout. A single HTML form POSTs to Flask, which validates + prices in Python.
+   `form` holds any previously-typed values so nothing is lost when we re-render
+   after a validation error. `error` is the message to show (if any). #}
+{% extends "base.html" %}
+{% block title %}Checkout · bakedbyPrii{% endblock %}
+
+{% block content %}
+<section class="section">
+    <span class="eyebrow">Collection &amp; Didcot delivery</span>
+    <h2 class="section-title">Checkout</h2>
+    <p class="lead">We bake from home in Didcot. <strong>Collect from us free</strong>, or we'll <strong>deliver within Didcot (OX11)</strong>.
+        No payment is taken on this page.</p>
+
+    {% if error %}<div class="alert error">{{ error }}</div>{% endif %}
+
+    <div class="layout">
+        <form class="form" method="post" action="{{ url_for('checkout') }}">
+            <div class="full">
+                <h3 class="co-step">1 · Collection or delivery</h3>
+                <div class="choice-grid">
+                    <label class="choice">
+                        <input type="radio" name="fulfilment" value="collection" {{ 'checked' if form.get('fulfilment', 'collection') == 'collection' }}>
+                        <span class="c-title">🏠 Collect from home</span>
+                        <span class="c-desc">Free · everyone welcome</span>
+                    </label>
+                    <label class="choice">
+                        <input type="radio" name="fulfilment" value="delivery" {{ 'checked' if form.get('fulfilment') == 'delivery' }}>
+                        <span class="c-title">🚗 Delivery</span>
+                        <span class="c-desc">Didcot (OX11) only · free over £20, else £2.50</span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="full"><h3 class="co-step">2 · Your details</h3></div>
+            <div><label>Full name</label><input name="name" value="{{ form.get('name', '') }}" required></div>
+            <div><label>Email</label><input type="email" name="email" value="{{ form.get('email', '') }}" required></div>
+            <div><label>Phone</label><input type="tel" name="phone" value="{{ form.get('phone', '') }}" placeholder="+44 7911 123456" required></div>
+            <div><label>Required date</label><input type="date" name="date" value="{{ form.get('date', '') }}" required></div>
+
+            <div class="full">
+                <label>Delivery address (Didcot only — leave blank if collecting)</label>
+                <input name="address" value="{{ form.get('address', '') }}" placeholder="House &amp; street" style="margin-bottom:0.6rem">
+                <input name="postcode" value="{{ form.get('postcode', '') }}" placeholder="Postcode, e.g. OX11 7AB">
+            </div>
+            <div class="full"><label>Notes (flavours, message on cake, allergies)</label><textarea name="notes" placeholder="Anything we need to know…">{{ form.get('notes', '') }}</textarea></div>
+
+            <div class="full"><h3 class="co-step">3 · Payment</h3></div>
+            <div class="full pay-options">
+                {% for opt in payment_options %}
+                <label class="choice">
+                    <input type="radio" name="payment" value="{{ opt.value }}" {{ 'checked' if form.get('payment', 'cash') == opt.value }}>
+                    <span class="c-title">{{ opt.title }}</span>
+                    <span class="c-desc">{{ opt.desc }}</span>
+                </label>
+                {% endfor %}
+            </div>
+
+            <div class="full">
+                <button class="btn" type="submit" style="margin-top:0.6rem">Place order</button>
+                <p class="muted" style="margin-top:0.8rem">No payment is taken now. By placing an order you agree to our
+                    <a href="{{ url_for('legal', doc='terms') }}">Terms</a>,
+                    <a href="{{ url_for('legal', doc='allergens') }}">Allergen info</a> and
+                    <a href="{{ url_for('legal', doc='privacy') }}">Privacy Policy</a>.</p>
+            </div>
+        </form>
+
+        <aside class="summary">
+            <h4>Order summary</h4>
+            {% for line in cart_lines %}
+            <div class="sl"><span>{{ line.qty }} × {{ line.name }}</span><span>£{{ '%.2f' | format(line.line_total) }}</span></div>
+            {% endfor %}
+            <div class="row"><span>Subtotal</span><span>£{{ '%.2f' | format(subtotal) }}</span></div>
+            <div class="row total"><span>Total (before delivery)</span><span>£{{ '%.2f' | format(subtotal) }}</span></div>
+            <p class="muted" style="margin-top:0.6rem">Delivery fee (if any) is added once you choose delivery.</p>
+            <a href="{{ url_for('menu') }}" class="muted">← Edit cart</a>
+        </aside>
+    </div>
+</section>
+{% endblock %}

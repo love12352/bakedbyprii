@@ -1,0 +1,61 @@
+{# Admin dashboard. `orders`, `stats`, and `statuses` come from Python.
+   Status changes are HTML forms (a <select> that auto-submits on change is the
+   only tiny bit of JS on the whole site; it also works via the Update button). #}
+{% extends "base.html" %}
+{% block title %}Orders · bakedbyPrii{% endblock %}
+
+{% block content %}
+<section class="section">
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem">
+        <h2 class="section-title">Orders dashboard</h2>
+        <form method="post" action="{{ url_for('admin_logout') }}"><button class="btn ghost small" type="submit">Sign out</button></form>
+    </div>
+
+    <div class="stats">
+        <div class="stat"><div class="n">{{ stats.new }}</div><div class="l">New orders</div></div>
+        <div class="stat"><div class="n">{{ stats.total }}</div><div class="l">Total orders</div></div>
+        <div class="stat"><div class="n">£{{ '%.2f' | format(stats.revenue) }}</div><div class="l">Revenue (excl. cancelled)</div></div>
+    </div>
+
+    <div class="filters">
+        {% for f in ['all'] + statuses %}
+        <a class="btn small {{ 'ghost' if current_filter != f }}" href="{{ url_for('admin', status=f) }}">{{ f | capitalize }}</a>
+        {% endfor %}
+    </div>
+
+    {% if not orders %}
+        <p class="muted">No orders{{ '' if current_filter == 'all' else ' with this status' }} yet.</p>
+    {% endif %}
+
+    {% for o in orders %}
+    <div class="order-card">
+        <div>
+            <span class="ref">{{ o.ref }}</span><span class="badge {{ o.status }}">{{ o.status }}</span>
+            <div class="muted">{{ o.created_at[:16] | replace('T', ' ') }}</div>
+            <div class="muted" style="margin-top:0.4rem">
+                {% if o.fulfilment == 'delivery' %}Delivery · {{ o.address }}, {{ o.postcode }}{% else %}Collection from home{% endif %}<br>
+                Wanted: {{ o.required_date }} · Pay: {{ o.payment }}
+            </div>
+        </div>
+        <div class="muted">
+            <strong style="color:#fff">{{ o.name }}</strong><br>{{ o.email }}<br>{{ o.phone }}
+            {% if o.notes %}<br><em>{{ o.notes }}</em>{% endif %}
+        </div>
+        <div class="muted">
+            {% for line in o['items'] %}{{ line.qty }} × {{ line.name }}<br>{% endfor %}
+            <strong style="color:#fff">£{{ '%.2f' | format(o.total) }}</strong>
+        </div>
+        <form method="post" action="{{ url_for('admin_set_status', ref=o.ref) }}">
+            <input type="hidden" name="status_filter" value="{{ current_filter }}">
+            <select name="status" onchange="this.form.submit()"
+                    style="background:rgba(0,0,0,0.3);color:#fff;border:1px solid var(--glass-border);border-radius:10px;padding:0.5rem">
+                {% for s in statuses %}
+                <option value="{{ s }}" {{ 'selected' if s == o.status }}>{{ s | capitalize }}</option>
+                {% endfor %}
+            </select>
+            <button class="btn small" type="submit" style="margin-top:0.5rem">Update</button>
+        </form>
+    </div>
+    {% endfor %}
+</section>
+{% endblock %}

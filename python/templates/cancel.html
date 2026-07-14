@@ -1,0 +1,43 @@
+{# Customer self-service cancel page. Reached via the secret link in the order
+   email: /cancel?ref=...&token=...  `order` is a safe, read-only public view. #}
+{% extends "base.html" %}
+{% block title %}Your order {{ order.ref if order else '' }} · bakedbyPrii{% endblock %}
+
+{% block content %}
+<section class="section">
+    <span class="eyebrow">Your order</span>
+    <h2 class="section-title">Order {{ order.ref if order else '' }}</h2>
+
+    {% if not order %}
+        <div class="alert error">{{ error or 'Order not found or link is invalid.' }}</div>
+        <a class="btn" href="{{ url_for('home') }}">Back to home</a>
+    {% else %}
+        {% if message %}<div class="alert ok">{{ message }}</div>{% endif %}
+
+        <div class="summary" style="position:static;max-width:460px">
+            <h4>Hi {{ order.name }} — status: {{ order.status | capitalize }}</h4>
+            {% for line in order['items'] %}
+            <div class="sl"><span>{{ line.qty }} × {{ line.name }}</span><span>£{{ '%.2f' | format(line.price * line.qty) }}</span></div>
+            {% endfor %}
+            <div class="row"><span>Subtotal</span><span>£{{ '%.2f' | format(order.subtotal) }}</span></div>
+            <div class="row"><span>{{ 'Delivery' if order.fulfilment == 'delivery' else 'Collection' }}</span>
+                <span>{% if order.delivery_fee %}£{{ '%.2f' | format(order.delivery_fee) }}{% else %}Free{% endif %}</span></div>
+            <div class="row total"><span>Total</span><span>£{{ '%.2f' | format(order.total) }}</span></div>
+            <p class="muted" style="margin-top:0.6rem">Wanted: {{ order.required_date }} · Payment: {{ order.payment }}</p>
+        </div>
+
+        {% if order.cancellable %}
+            <p class="lead" style="margin-top:1.4rem">Changed your mind? While your order is still awaiting confirmation you can cancel it instantly and free.</p>
+            <form method="post" action="{{ url_for('cancel') }}">
+                <input type="hidden" name="ref" value="{{ order.ref }}">
+                <input type="hidden" name="token" value="{{ token }}">
+                <button class="btn" type="submit">Cancel my order</button>
+            </form>
+        {% else %}
+            <p class="muted" style="margin-top:1.4rem">This order can no longer be cancelled online. Please contact us at
+                <a href="mailto:BakedbyPrii@gmail.com">BakedbyPrii@gmail.com</a> or
+                <a href="tel:+447732262999">+44 7732 262999</a> and we'll help.</p>
+        {% endif %}
+    {% endif %}
+</section>
+{% endblock %}

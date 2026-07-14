@@ -1,0 +1,5 @@
+# Python dependencies for the bakedbyPrii port.
+# Only Flask is needed — the database (sqlite3), email (smtplib) and .env loading
+# are all handled with Python's standard library, mirroring how the Node app
+# leaned on built-ins (node:sqlite) rather than heavy dependencies.
+Flask>=3.0,<4.0

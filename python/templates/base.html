@@ -1,0 +1,54 @@
+{# Base layout shared by every page. Child templates fill the `content` block.
+   Jinja essentials shown here:
+     {% block x %}...{% endblock %}  — a slot a child template can override
+     {{ value }}                     — print a Python value (auto HTML-escaped)
+     {{ url_for('name') }}           — build a URL for a Flask route by function name #}
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}bakedbyPrii{% endblock %}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Manrope:wght@400;700&family=Galada&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <header class="header">
+        <a class="logo" href="{{ url_for('home') }}">
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" />
+                <path d="M12 8V16M8 12H16" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+            </svg>
+            <span>bakedbyPrii</span>
+        </a>
+        <nav class="nav">
+            {# `active_page` is passed by each view so the current tab highlights #}
+            <a href="{{ url_for('home') }}" class="{{ 'active' if active_page == 'home' }}">Home</a>
+            <a href="{{ url_for('menu') }}" class="{{ 'active' if active_page == 'menu' }}">Menu &amp; Order</a>
+            <a href="{{ url_for('checkout') }}" class="{{ 'active' if active_page == 'checkout' }}">
+                Cart{% if cart_count %} ({{ cart_count }}){% endif %}
+            </a>
+            <a href="{{ url_for('admin') }}" class="{{ 'active' if active_page == 'admin' }}">Admin</a>
+        </nav>
+    </header>
+
+    <main class="container">
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer class="site-footer">
+        <div class="container">
+            <strong>bakedbyPrii</strong> — home bakery in Didcot (OX11). Collection free · delivery within Didcot.
+            <div class="footer-links">
+                <a href="{{ url_for('legal', doc='allergens') }}">Allergens</a>
+                <a href="{{ url_for('legal', doc='delivery') }}">Delivery &amp; Returns</a>
+                <a href="{{ url_for('legal', doc='privacy') }}">Privacy</a>
+                <a href="{{ url_for('legal', doc='terms') }}">Terms</a>
+                <a href="mailto:BakedbyPrii@gmail.com">Contact</a>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>

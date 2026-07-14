@@ -1,0 +1,13 @@
+{# Legal / info pages. `doc` is a dict {eyebrow, title, body_html} built in Python.
+   `| safe` tells Jinja NOT to escape the HTML (the content is ours, not user input). #}
+{% extends "base.html" %}
+{% block title %}{{ doc.title }} · bakedbyPrii{% endblock %}
+
+{% block content %}
+<section class="section">
+    <span class="eyebrow">{{ doc.eyebrow }}</span>
+    <h2 class="section-title">{{ doc.title }}</h2>
+    <div class="doc">{{ doc.body_html | safe }}</div>
+    <p style="margin-top:1.6rem"><a href="{{ url_for('home') }}">← Back to home</a></p>
+</section>
+{% endblock %}

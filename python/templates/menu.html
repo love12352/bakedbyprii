@@ -1,0 +1,62 @@
+{# Menu + cart builder. `groups` is a list of {category, items:[...]} from Python.
+   Each item's current quantity comes from `cart` (the session cart: {id: qty}).
+   The +/- steppers are tiny HTML forms that POST to Flask — no JavaScript. #}
+{% extends "base.html" %}
+{% block title %}Menu & Order · bakedbyPrii{% endblock %}
+
+{% block content %}
+<section class="section">
+    <span class="eyebrow">Freshly baked · pre-order only</span>
+    <h2 class="section-title">Menu &amp; Order</h2>
+    <p class="lead">Everything is handmade to order in small batches. Add treats to your cart, then head to checkout.
+        Please see our <a href="{{ url_for('legal', doc='allergens') }}">allergen information</a> before ordering.</p>
+
+    <div class="layout">
+        <div>
+            {% for group in groups %}
+            <h3 class="group-label" id="{{ group.category | lower }}">{{ group.category }}</h3>
+            <div class="menu-grid">
+                {% for item in group['items'] %}
+                <div class="menu-card">
+                    <div class="row">
+                        <h4>{{ item.name }}</h4>
+                        <span class="price">£{{ '%.2f' | format(item.price) }}</span>
+                    </div>
+                    <span class="tags">{{ item.allergens }}</span>
+                    <div class="qty">
+                        {# Decrease: only shown when there's something to remove #}
+                        <form method="post" action="{{ url_for('cart_remove') }}">
+                            <input type="hidden" name="id" value="{{ item.id }}">
+                            <button type="submit" aria-label="Remove one {{ item.name }}"
+                                {{ 'disabled' if not cart.get(item.id) }}>−</button>
+                        </form>
+                        <span class="count">{{ cart.get(item.id, 0) }}</span>
+                        <form method="post" action="{{ url_for('cart_add') }}">
+                            <input type="hidden" name="id" value="{{ item.id }}">
+                            <button type="submit" aria-label="Add one {{ item.name }}">+</button>
+                        </form>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% endfor %}
+        </div>
+
+        <aside class="summary">
+            <h4>Your cart</h4>
+            {% if cart_lines %}
+                {% for line in cart_lines %}
+                <div class="sl"><span>{{ line.qty }} × {{ line.name }}</span><span>£{{ '%.2f' | format(line.line_total) }}</span></div>
+                {% endfor %}
+                <div class="row total"><span>Subtotal</span><span>£{{ '%.2f' | format(subtotal) }}</span></div>
+                <a class="btn" style="margin-top:1rem;width:100%;justify-content:center" href="{{ url_for('checkout') }}">Go to checkout →</a>
+                <form method="post" action="{{ url_for('cart_clear') }}" style="margin-top:0.6rem">
+                    <button class="btn ghost small" type="submit" style="width:100%;justify-content:center">Clear cart</button>
+                </form>
+            {% else %}
+                <p class="summary-empty">No items yet — add some treats.</p>
+            {% endif %}
+        </aside>
+    </div>
+</section>
+{% endblock %}

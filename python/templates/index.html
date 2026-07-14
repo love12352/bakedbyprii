@@ -1,0 +1,30 @@
+{# Home page. `{% extends %}` pulls in base.html; we only fill the content block.
+   `categories` is a list of dicts built in Python (name + cheapest price). #}
+{% extends "base.html" %}
+{% block title %}bakedbyPrii | Freshly Baked, Every Day{% endblock %}
+
+{% block content %}
+<section class="hero">
+    <h1>Freshly Baked</h1>
+    <p>Real butter, real fruit, real patience. Cakes, cookies, and cupcakes made by hand — every single morning.</p>
+    <a class="btn" href="{{ url_for('menu') }}">Explore the Menu →</a>
+
+    <div class="category-cards">
+        {% for c in categories %}
+        <a class="cat-card" href="{{ url_for('menu') }}#{{ c.name | lower }}">
+            <div class="cc-name">{{ c.name }}</div>
+            <div class="cc-price">from £{{ '%.2f' | format(c.min_price) }}</div>
+        </a>
+        {% endfor %}
+    </div>
+</section>
+
+<section class="section">
+    <span class="eyebrow">Collection &amp; Didcot delivery</span>
+    <h2 class="section-title">How ordering works</h2>
+    <p class="lead">Browse the menu, add your treats to the cart, and place your order — no payment is taken online.
+        We bake from home in Didcot: <strong>collect free</strong>, or we'll <strong>deliver within Didcot (OX11)</strong>
+        (free over £20, otherwise £2.50). We confirm availability by email within one working day.</p>
+    <a class="btn" href="{{ url_for('menu') }}">Start your order</a>
+</section>
+{% endblock %}
