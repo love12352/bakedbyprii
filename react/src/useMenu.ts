@@ -7,25 +7,33 @@ export function useMenu() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Bumped on every load() call; a settled request only writes state if its
-  // captured generation still matches, so a stale response (one superseded by
-  // a later reload) can never clobber fresher state. Also doubles as the
-  // unmount guard: set to -1 (a value no in-flight request captured) on cleanup.
+  // Bumped on every load() call and never reset, so it is strictly
+  // monotonic: a settled request only writes state if its captured
+  // generation still matches, so a stale response (one superseded by
+  // a later reload) can never clobber fresher state. Because the value is
+  // never rewound (no sentinel reset on unmount), no generation number is
+  // ever reused — including across React 18 StrictMode's dev-only
+  // mount -> cleanup -> remount cycle, which reuses the same ref instance.
   const generationRef = useRef(0);
+  // Tracks actual mount state, separately from the generation counter, so
+  // a request settling after a real unmount is a no-op without having to
+  // overload the counter (and without risking generation reuse).
+  const mountedRef = useRef(true);
 
   const load = useCallback(() => {
     const generation = ++generationRef.current;
     setLoading(true);
     setError(null);
     getMenu()
-      .then((m) => { if (generationRef.current === generation) setMenu(m); })
-      .catch((e) => { if (generationRef.current === generation) setError(e.message || 'Could not load the menu.'); })
-      .finally(() => { if (generationRef.current === generation) setLoading(false); });
+      .then((m) => { if (mountedRef.current && generationRef.current === generation) setMenu(m); })
+      .catch((e) => { if (mountedRef.current && generationRef.current === generation) setError(e.message || 'Could not load the menu.'); })
+      .finally(() => { if (mountedRef.current && generationRef.current === generation) setLoading(false); });
   }, []);
 
   useEffect(() => {
+    mountedRef.current = true;
     load();
-    return () => { generationRef.current = -1; };
+    return () => { mountedRef.current = false; };
   }, [load]);
 
   return { menu, error, loading, reload: load };

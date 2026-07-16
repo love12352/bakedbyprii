@@ -1,3 +1,4 @@
+import { StrictMode } from 'react';
 import { describe, it, expect } from 'vitest';
 import { render, screen, renderHook, act, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -7,6 +8,10 @@ import { CartProvider } from '../cart/CartContext';
 import { server, menuFixture } from '../test/mocks/handlers';
 import { useMenu } from '../useMenu';
 import Menu from './Menu';
+
+const reloadFixture = [
+  { id: 'muffin-blueberry', category: 'Muffins', name: 'Blueberry Muffin', price: 3.25, allergens: 'Gluten, Egg' },
+];
 
 const ROUTER_FUTURE = { v7_startTransition: true, v7_relativeSplatPath: true };
 
@@ -82,6 +87,59 @@ describe('Menu page', () => {
 
     expect(result.current.error).toBeNull();
     expect(result.current.menu).toEqual(menuFixture);
+    expect(result.current.loading).toBe(false);
+  });
+
+  it('does not let a StrictMode-orphaned mount request reuse a generation number and clobber a later reload', async () => {
+    // React 18 StrictMode (see src/main.tsx) mounts, cleans up, and remounts
+    // every effect once in development, reusing the same ref instances across
+    // the simulated remount. That means three /api/menu requests fire here:
+    //   #1 - the first (StrictMode-simulated) mount's request: slow, rejects.
+    //   #2 - the second (real) mount's request: fast, succeeds.
+    //   #3 - a user-triggered reload() fired after #2 settles: fast, succeeds
+    //        with different data, and must be the request that "wins".
+    // The ordering of which request fires when is guaranteed by StrictMode's
+    // synchronous mount/cleanup/remount (not timing), and the ordering of
+    // which settles first is guaranteed by #1's explicit delay vs. #2/#3
+    // resolving immediately — so this is deterministic, not timing luck.
+    let call = 0;
+    server.use(http.get('/api/menu', async () => {
+      const idx = call++;
+      if (idx === 0) {
+        await new Promise((resolve) => setTimeout(resolve, 80));
+        return HttpResponse.json({ ok: false, error: 'boom' }, { status: 500 });
+      }
+      if (idx === 1) {
+        return HttpResponse.json({ ok: true, menu: menuFixture });
+      }
+      return HttpResponse.json({ ok: true, menu: reloadFixture });
+    }));
+
+    const { result } = renderHook(() => useMenu(), {
+      wrapper: ({ children }) => <StrictMode>{children}</StrictMode>,
+    });
+
+    // Wait for the second (real) StrictMode mount's request to resolve.
+    await waitFor(() => expect(result.current.menu).toEqual(menuFixture));
+    expect(result.current.error).toBeNull();
+
+    // Fire a user reload well before request #1's 80ms delay elapses.
+    await act(async () => {
+      result.current.reload();
+    });
+
+    await waitFor(() => expect(result.current.menu).toEqual(reloadFixture));
+    expect(result.current.error).toBeNull();
+
+    // Wait past request #1's delay so its stale (StrictMode-orphaned)
+    // rejection has had a chance to settle and, if the guard is broken,
+    // clobber the reload's result.
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 100));
+    });
+
+    expect(result.current.error).toBeNull();
+    expect(result.current.menu).toEqual(reloadFixture);
     expect(result.current.loading).toBe(false);
   });
 });
