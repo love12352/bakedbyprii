@@ -8,8 +8,12 @@ import { server, menuFixture } from '../test/mocks/handlers';
 import { useMenu } from '../useMenu';
 import Menu from './Menu';
 
+const ROUTER_FUTURE = { v7_startTransition: true, v7_relativeSplatPath: true };
+
 const wrap = () => render(
-  <CartProvider><MemoryRouter><Menu /></MemoryRouter></CartProvider>,
+  <CartProvider>
+    <MemoryRouter future={ROUTER_FUTURE}><Menu /></MemoryRouter>
+  </CartProvider>,
 );
 
 describe('Menu page', () => {
