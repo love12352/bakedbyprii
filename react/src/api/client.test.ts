@@ -41,4 +41,27 @@ describe('api client', () => {
     await adminSetStatus('BBP-1', 'confirmed', 'secret-key');
     expect(seenKey).toBe('secret-key');
   });
+
+  it('treats HTTP 200 with {ok:false} as an error', async () => {
+    server.use(http.get('/api/menu', () =>
+      HttpResponse.json({ ok: false, error: 'Menu unavailable.' }, { status: 200 })));
+    await expect(getMenu()).rejects.toMatchObject({
+      message: 'Menu unavailable.',
+      status: 200
+    } satisfies Partial<ApiError>);
+  });
+
+  it('handles network failures with status 0 and network error message', async () => {
+    server.use(http.get('/api/menu', () => HttpResponse.error()));
+    await expect(getMenu()).rejects.toMatchObject({
+      message: 'Could not reach the bakery. Check your connection and try again.',
+      status: 0
+    } satisfies Partial<ApiError>);
+  });
+
+  it('handles non-JSON response body on success without throwing', async () => {
+    server.use(http.get('/api/menu', () => new Response('plain text', { status: 200 })));
+    const result = await getMenu();
+    expect(result).toBe(undefined);
+  });
 });
