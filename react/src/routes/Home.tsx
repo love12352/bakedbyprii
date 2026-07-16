@@ -5,7 +5,7 @@ import { themeForCategory } from '../content/theme';
 import { gbp } from '../money';
 import type { MenuItem } from '../types';
 
-function categorySummaries(menu: MenuItem[]): { category: string; min: number }[] {
+export function categorySummaries(menu: MenuItem[]): { category: string; min: number }[] {
   const out: { category: string; min: number }[] = [];
   const index = new Map<string, { category: string; min: number }>();
   for (const item of menu) {
@@ -25,7 +25,7 @@ function applyTheme(category: string) {
   const t = themeForCategory(category);
   gsap.to(document.body, {
     '--bg-inner': t.inner, '--bg-mid': t.mid, '--bg-outer': t.outer,
-    duration: 1.2, ease: 'power2.inOut',
+    duration: 1.2, ease: 'power2.inOut', overwrite: 'auto',
   });
 }
 
