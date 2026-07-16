@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { getMenu } from './api/client';
 import type { MenuItem } from './types';
 
@@ -7,16 +7,26 @@ export function useMenu() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
+  // Bumped on every load() call; a settled request only writes state if its
+  // captured generation still matches, so a stale response (one superseded by
+  // a later reload) can never clobber fresher state. Also doubles as the
+  // unmount guard: set to -1 (a value no in-flight request captured) on cleanup.
+  const generationRef = useRef(0);
+
   const load = useCallback(() => {
+    const generation = ++generationRef.current;
     setLoading(true);
     setError(null);
     getMenu()
-      .then((m) => setMenu(m))
-      .catch((e) => setError(e.message || 'Could not load the menu.'))
-      .finally(() => setLoading(false));
+      .then((m) => { if (generationRef.current === generation) setMenu(m); })
+      .catch((e) => { if (generationRef.current === generation) setError(e.message || 'Could not load the menu.'); })
+      .finally(() => { if (generationRef.current === generation) setLoading(false); });
   }, []);
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => {
+    load();
+    return () => { generationRef.current = -1; };
+  }, [load]);
 
   return { menu, error, loading, reload: load };
 }
