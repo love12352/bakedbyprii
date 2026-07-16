@@ -161,15 +161,8 @@ describe('CartContext', () => {
     });
 
     it('round-trips: mount, mutate, unmount, remount', () => {
-      // First mount: add items
-      const { unmount } = renderHook(() => useCart(), {
-        wrapper: CartProvider,
-        initialProps: undefined,
-      });
-
-      // We need to get the hook to interact with it
-      let hookResult: any;
-      const { result } = renderHook(() => useCart(), {
+      // First mount: add items and persist to localStorage
+      const { result, unmount } = renderHook(() => useCart(), {
         wrapper: CartProvider,
       });
 
@@ -183,14 +176,10 @@ describe('CartContext', () => {
         JSON.stringify({ 'item-1': 4, 'item-2': 6 })
       );
 
-      // Unmount and clear the hook to force a fresh instance
-      // (In a real app, unmounting destroys the provider)
-      // Simulate this by creating a fresh render context
+      // Unmount to destroy this provider instance
+      unmount();
 
-      // Clear and set fresh storage to simulate a new app instance
-      // (In this test, we just create a new hook instance)
-
-      // Now mount a fresh provider and verify it rehydrates
+      // Now mount a fresh provider and verify it rehydrates from localStorage
       const { result: result2 } = renderHook(() => useCart(), {
         wrapper: CartProvider,
       });
