@@ -7,7 +7,7 @@ import { AppRoutes } from './App';
 function renderAt(path: string) {
   return render(
     <CartProvider>
-      <MemoryRouter initialEntries={[path]}>
+      <MemoryRouter initialEntries={[path]} future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
         <AppRoutes />
       </MemoryRouter>
     </CartProvider>,
