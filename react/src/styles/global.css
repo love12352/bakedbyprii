@@ -57,3 +57,7 @@ a { color: inherit; }
 .qty button:hover:not(:disabled) { background: var(--accent); color: var(--accent-ink); }
 .qty button:disabled { opacity: 0.4; cursor: default; }
 .qty > span { width: 22px; text-align: center; font-weight: 600; }
+.state-msg { text-align: center; padding: 3rem 1rem; color: var(--muted-color); }
+.group-heading { font-family: var(--font-heading); font-size: 1.5rem; margin-bottom: 0.9rem; }
+.submit-btn { padding: 0.7rem 1.4rem; border: none; border-radius: 999px; background: var(--accent); color: var(--accent-ink); font-weight: 600; cursor: pointer; }
+.submit-btn:disabled { opacity: 0.5; cursor: default; }
