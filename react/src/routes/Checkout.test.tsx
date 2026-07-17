@@ -56,7 +56,12 @@ describe('Checkout', () => {
     expect(await screen.findByRole('heading', { name: /order placed/i })).toBeInTheDocument();
   });
 
-  it('prevents duplicate orders on rapid double-submit', async () => {
+  // Pins the user-facing property: two clicks must never place two orders.
+  // Caveat: in jsdom React flushes discrete click events synchronously, so the
+  // button's disabled prop already blocks the second click and this passes with
+  // or without submit()'s submittingRef guard. The guard covers real browsers,
+  // where the commit can lag the second click, and is not isolated by any test.
+  it('places exactly one order when Place order is double-clicked', async () => {
     let postCount = 0;
     server.use(http.post('/api/orders', () => {
       postCount++;
