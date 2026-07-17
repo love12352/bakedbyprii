@@ -26,6 +26,11 @@ export default function Cancel() {
   }, [ref, token]);
 
   async function doCancel(order: PublicOrder) {
+    // The ref — not `busy` — is the re-entrancy guard: it flips synchronously,
+    // before the await, so a second click cannot start a second cancel. Two
+    // concurrent cancels would have the server 400 the loser ("no longer
+    // cancellable"), and the catch below would replace the success view with
+    // that error — telling a customer their completed cancellation failed.
     if (cancellingRef.current) return;
     cancellingRef.current = true;
     setBusy(true);
@@ -34,8 +39,9 @@ export default function Cancel() {
       setView({ kind: 'cancelled', order: { ...order, status: 'cancelled', cancellable: false } });
     } catch (e) {
       setView({ kind: 'invalid', message: (e as Error).message });
+      cancellingRef.current = false;   // re-arm so a genuine retry works
+    } finally {
       setBusy(false);
-      cancellingRef.current = false;
     }
   }
 

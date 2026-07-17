@@ -41,10 +41,16 @@ describe('Cancel', () => {
     expect(await screen.findByText(/not found or link is invalid/i)).toBeInTheDocument();
   });
 
-  // Caveat: in jsdom React flushes discrete click events synchronously, so the
-  // button's disabled prop already blocks the second click and this passes with
-  // or without doCancel()'s cancellingRef guard. The guard covers real browsers,
-  // where the commit can lag the second click, and is not isolated by any test.
+  // Pins the user-facing property: two clicks must never send two cancels, and
+  // the success state must survive.
+  //
+  // Read this before trusting it: the test has NO discriminating power over
+  // doCancel()'s cancellingRef guard — deleting the guard entirely leaves all
+  // of these tests green. jsdom flushes discrete click events synchronously, so
+  // the button's disabled prop blocks the second click before the handler is
+  // ever re-entered, and only one POST fires either way. The guard exists for
+  // real browsers, where the commit can lag a fast second click; nothing in CI
+  // will catch its removal. Task 14's end-to-end pass is the only real check.
   it('cancels exactly one order when Cancel my order is double-clicked', async () => {
     let postCount = 0;
     server.use(
