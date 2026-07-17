@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { http, HttpResponse } from 'msw';
 import { MemoryRouter, Routes, Route } from 'react-router-dom';
@@ -29,7 +29,9 @@ describe('Checkout', () => {
   it('lists cart lines and a total from the menu', async () => {
     renderCheckout();
     expect(await screen.findByText('Chocolate Chip Cookie')).toBeInTheDocument();
-    expect(screen.getByText('£5.50')).toBeInTheDocument(); // 2 × 2.75
+    // 2 × £2.75 — subtotal and total (collection, no delivery fee) must both read £5.50.
+    expect(within(screen.getByTestId('row-subtotal')).getByText('£5.50')).toBeInTheDocument();
+    expect(within(screen.getByTestId('row-total')).getByText('£5.50')).toBeInTheDocument();
   });
 
   it('shows the server error inline and keeps the cart', async () => {

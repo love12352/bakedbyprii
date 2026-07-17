@@ -75,13 +75,16 @@ export default function Checkout() {
           <div key={l.id} className="line-item">
             <span className="li-name">{l.name}</span>
             <QtyStepper qty={l.qty} onDec={() => dec(l.id)} onInc={() => inc(l.id)} />
-            <span className="li-price">{l.qty} × {gbp(l.price)}</span>
+            <span className="li-price">
+              {gbp(l.lineTotal)}
+              <span className="li-unit">{l.qty} × {gbp(l.price)}</span>
+            </span>
           </div>
         ))}
-        <div className="totals">
-          <div><span>Subtotal</span><span>{gbp(subtotal)}</span></div>
-          {form.fulfilment === 'delivery' && <div><span>Delivery</span><span>{fee === 0 ? 'Free' : gbp(fee)}</span></div>}
-          {total !== subtotal && <div className="grand"><span>Total</span><span>{gbp(total)}</span></div>}
+        <div className="totals" data-testid="totals">
+          <div data-testid="row-subtotal"><span>Subtotal</span><span>{gbp(subtotal)}</span></div>
+          {form.fulfilment === 'delivery' && <div data-testid="row-delivery"><span>Delivery</span><span>{fee === 0 ? 'Free' : gbp(fee)}</span></div>}
+          <div className="grand" data-testid="row-total"><span>Total</span><span>{gbp(total)}</span></div>
         </div>
       </section>
 

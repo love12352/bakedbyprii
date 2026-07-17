@@ -69,6 +69,7 @@ a { color: inherit; }
 .glass-block { background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 18px; padding: 1.4rem; margin-bottom: 1.4rem; }
 .line-item { display: grid; grid-template-columns: 1fr auto auto; align-items: center; gap: 1rem; padding: 0.5rem 0; border-bottom: 1px solid var(--glass-border); }
 .li-price { min-width: 4rem; text-align: right; color: var(--accent); font-weight: 600; }
+.li-unit { display: block; font-size: 0.75rem; font-weight: 400; color: var(--muted-color); }
 .totals { margin-top: 1rem; display: grid; gap: 0.3rem; }
 .totals > div { display: flex; justify-content: space-between; color: var(--muted-color); }
 .totals .grand { color: var(--text-color); font-weight: 700; font-size: 1.1rem; margin-top: 0.4rem; }
