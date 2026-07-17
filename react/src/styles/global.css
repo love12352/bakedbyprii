@@ -101,3 +101,7 @@ a { color: inherit; }
 .admin-notes { margin-top: 0.4rem; padding: 0.3rem 0.5rem; border-radius: 6px; border: 1px solid rgba(255,120,140,0.4); background: rgba(180,40,60,0.25); color: #ffd7d7; font-size: 0.78rem; }
 .admin-row select { padding: 0.4rem; border-radius: 8px; background: rgba(255,255,255,0.06); color: #fff; border: 1px solid var(--glass-border); }
 .visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+.legal h3 { font-family: var(--font-heading); margin: 1.1rem 0 0.4rem; }
+.legal p, .legal li { color: var(--muted-color); margin-bottom: 0.5rem; }
+.legal ul { padding-left: 1.2rem; }
+.legal a { color: var(--accent); }
