@@ -82,3 +82,6 @@ a { color: inherit; }
 .pay-option { padding: 0.3rem 0; }
 .form-error { grid-column: 1 / -1; color: #ffd7d7; background: rgba(180,40,60,0.3); border: 1px solid rgba(255,120,140,0.4); padding: 0.7rem 0.9rem; border-radius: 10px; }
 .form-note { grid-column: 1 / -1; color: var(--muted-color); font-size: 0.82rem; }
+.muted { color: var(--muted-color); }
+.ref { color: var(--accent); letter-spacing: 0.05em; }
+.confirm p { margin-bottom: 0.6rem; }
