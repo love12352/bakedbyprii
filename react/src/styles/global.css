@@ -85,3 +85,5 @@ a { color: inherit; }
 .muted { color: var(--muted-color); }
 .ref { color: var(--accent); letter-spacing: 0.05em; }
 .confirm p { margin-bottom: 0.6rem; }
+.cancel-items { list-style: none; margin: 1rem 0; display: grid; gap: 0.3rem; color: var(--muted-color); }
+.cancelled-note { color: #cdefd0; background: rgba(40,120,70,0.3); border: 1px solid rgba(120,220,150,0.4); padding: 0.7rem 0.9rem; border-radius: 10px; margin-bottom: 1rem; }
