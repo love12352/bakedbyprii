@@ -87,3 +87,13 @@ a { color: inherit; }
 .confirm p { margin-bottom: 0.6rem; }
 .cancel-items { list-style: none; margin: 1rem 0; display: grid; gap: 0.3rem; color: var(--muted-color); }
 .cancelled-note { color: #cdefd0; background: rgba(40,120,70,0.3); border: 1px solid rgba(120,220,150,0.4); padding: 0.7rem 0.9rem; border-radius: 10px; margin-bottom: 1rem; }
+.admin-login { max-width: 360px; }
+.admin-login input { width: 100%; padding: 0.6rem 0.7rem; border-radius: 10px; border: 1px solid var(--glass-border); background: rgba(255,255,255,0.04); color: #fff; margin: 0.4rem 0 0.9rem; }
+.admin-stats { display: flex; gap: 1rem; margin-bottom: 1.4rem; }
+.admin-stats div { background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 12px; padding: 0.8rem 1.1rem; color: var(--muted-color); }
+.admin-stats span { display: block; font-size: 1.4rem; color: var(--text-color); font-weight: 700; }
+.admin-table { display: grid; gap: 0.5rem; }
+.admin-row { display: grid; grid-template-columns: 6rem 1.4fr 2fr 5rem 8rem; gap: 0.8rem; align-items: center; background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 12px; padding: 0.7rem 0.9rem; }
+.admin-cell.ref { color: var(--accent); font-weight: 600; }
+.admin-row select { padding: 0.4rem; border-radius: 8px; background: rgba(255,255,255,0.06); color: #fff; border: 1px solid var(--glass-border); }
+.visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
