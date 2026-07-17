@@ -62,4 +62,19 @@ describe('Admin', () => {
     expect(await screen.findByText('BBP-ABCD')).toBeInTheDocument();
     expect(calls).toBe(2);
   });
+
+  // The baker rings and emails customers from this table, and the checkout tells
+  // customers to put allergies in the notes — so all three must reach the screen.
+  it('shows the customer email, phone and order notes', async () => {
+    // A realistic phone, not the shared fixture's '1', which also matches the stats row.
+    const withNotes = { ...adminOrder, phone: '07700900123', notes: 'Severe nut allergy — please keep separate' };
+    server.use(http.get('/api/admin/orders', () => HttpResponse.json({ ok: true, orders: [withNotes], stats })));
+    render(<Admin />);
+    await userEvent.type(screen.getByLabelText(/admin key/i), 'bakedbyprii-admin');
+    await userEvent.click(screen.getByRole('button', { name: /sign in/i }));
+
+    expect(await screen.findByText('s@e.co')).toBeInTheDocument();
+    expect(screen.getByText('07700900123')).toBeInTheDocument();
+    expect(screen.getByText(/severe nut allergy/i)).toBeInTheDocument();
+  });
 });

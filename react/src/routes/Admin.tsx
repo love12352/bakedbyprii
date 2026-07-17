@@ -73,8 +73,17 @@ export default function Admin() {
         {orders.map((o) => (
           <div key={o.ref} className="admin-row">
             <div className="admin-cell ref">{o.ref}</div>
-            <div className="admin-cell">{o.name}<br /><span className="muted">{o.fulfilment} · {o.required_date}</span></div>
-            <div className="admin-cell">{o.items.map((it) => `${it.qty}×${it.name}`).join(', ')}</div>
+            <div className="admin-cell">
+              {o.name}
+              <span className="muted">{o.fulfilment} · {o.required_date}</span>
+              <a className="muted" href={`mailto:${o.email}`}>{o.email}</a>
+              <a className="muted" href={`tel:${o.phone}`}>{o.phone}</a>
+            </div>
+            <div className="admin-cell">
+              {o.items.map((it) => `${it.qty}×${it.name}`).join(', ')}
+              {/* Customers are told to put allergies here, so it must never be hidden. */}
+              {o.notes && <span className="admin-notes">Notes: {o.notes}</span>}
+            </div>
             <div className="admin-cell">{gbp(o.total)}</div>
             <div className="admin-cell">
               <label className="visually-hidden" htmlFor={`st-${o.ref}`}>Status for {o.ref}</label>

@@ -93,7 +93,11 @@ a { color: inherit; }
 .admin-stats div { background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 12px; padding: 0.8rem 1.1rem; color: var(--muted-color); }
 .admin-stats span { display: block; font-size: 1.4rem; color: var(--text-color); font-weight: 700; }
 .admin-table { display: grid; gap: 0.5rem; }
-.admin-row { display: grid; grid-template-columns: 6rem 1.4fr 2fr 5rem 8rem; gap: 0.8rem; align-items: center; background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 12px; padding: 0.7rem 0.9rem; }
+.admin-row { display: grid; grid-template-columns: 6rem 1.4fr 2fr 5rem 8rem; gap: 0.8rem; align-items: start; background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 12px; padding: 0.7rem 0.9rem; }
+.admin-cell { display: flex; flex-direction: column; gap: 0.15rem; min-width: 0; }
+.admin-cell a { overflow-wrap: anywhere; }
 .admin-cell.ref { color: var(--accent); font-weight: 600; }
+/* Allergies are collected in the order notes, so make them impossible to skim past. */
+.admin-notes { margin-top: 0.4rem; padding: 0.3rem 0.5rem; border-radius: 6px; border: 1px solid rgba(255,120,140,0.4); background: rgba(180,40,60,0.25); color: #ffd7d7; font-size: 0.78rem; }
 .admin-row select { padding: 0.4rem; border-radius: 8px; background: rgba(255,255,255,0.06); color: #fff; border: 1px solid var(--glass-border); }
 .visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
