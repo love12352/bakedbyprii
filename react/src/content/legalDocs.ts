@@ -15,7 +15,7 @@ export const LEGAL_DOCS: Record<string, LegalDoc> = {
     eyebrow: 'Collection & Didcot delivery', title: 'Delivery & Returns',
     bodyHtml: `<h3>Collection</h3><p>bakedbyPrii is a home-based bakery in Didcot. Collection is <strong>free</strong>. We share the address and a time when we confirm your order.</p>
       <h3>Delivery</h3><p>We deliver <strong>within Didcot (OX11) only</strong>. Delivery is <strong>free on orders over £20</strong>; otherwise a £2.50 charge applies.</p>
-      <h3>Cancelling</h3><p>While your order is still awaiting confirmation you can cancel it instantly and free using the "Cancel my order" link in your confirmation email.</p>`,
+      <h3>Cancelling</h3><p>While your order is still awaiting confirmation you can cancel it instantly and free using the “Cancel my order” link in your confirmation email.</p>`,
   },
   privacy: {
     eyebrow: 'UK GDPR & Data Protection Act 2018', title: 'Privacy Policy',
