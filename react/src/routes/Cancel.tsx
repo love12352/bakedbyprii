@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { getOrder, cancelOrder } from '../api/client';
 import { gbp } from '../money';
@@ -16,6 +16,7 @@ export default function Cancel() {
   const token = params.get('token') || '';
   const [view, setView] = useState<View>({ kind: 'loading' });
   const [busy, setBusy] = useState(false);
+  const cancellingRef = useRef(false);
 
   useEffect(() => {
     if (!ref || !token) { setView({ kind: 'invalid', message: 'This cancellation link is invalid or has expired.' }); return; }
@@ -25,14 +26,16 @@ export default function Cancel() {
   }, [ref, token]);
 
   async function doCancel(order: PublicOrder) {
+    if (cancellingRef.current) return;
+    cancellingRef.current = true;
     setBusy(true);
     try {
       await cancelOrder(ref, token);
       setView({ kind: 'cancelled', order: { ...order, status: 'cancelled', cancellable: false } });
     } catch (e) {
       setView({ kind: 'invalid', message: (e as Error).message });
-    } finally {
       setBusy(false);
+      cancellingRef.current = false;
     }
   }
 

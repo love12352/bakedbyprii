@@ -40,4 +40,28 @@ describe('Cancel', () => {
     renderAt('?ref=BBP-ABCD&token=wrong');
     expect(await screen.findByText(/not found or link is invalid/i)).toBeInTheDocument();
   });
+
+  // Caveat: in jsdom React flushes discrete click events synchronously, so the
+  // button's disabled prop already blocks the second click and this passes with
+  // or without doCancel()'s cancellingRef guard. The guard covers real browsers,
+  // where the commit can lag the second click, and is not isolated by any test.
+  it('cancels exactly one order when Cancel my order is double-clicked', async () => {
+    let postCount = 0;
+    server.use(
+      http.get('/api/orders/:ref', () => HttpResponse.json({ ok: true, order })),
+      http.post('/api/orders/:ref/cancel', () => {
+        postCount++;
+        return HttpResponse.json({ ok: true });
+      }),
+    );
+    renderAt('?ref=BBP-ABCD&token=secret');
+    const button = await screen.findByRole('button', { name: /cancel my order/i });
+    // Fire two clicks in rapid succession without awaiting between them
+    userEvent.click(button);
+    userEvent.click(button);
+    // Wait for cancellation to confirm the order was cancelled
+    expect(await screen.findByText(/has been cancelled/i)).toBeInTheDocument();
+    // Assert exactly one POST was made
+    expect(postCount).toBe(1);
+  });
 });
