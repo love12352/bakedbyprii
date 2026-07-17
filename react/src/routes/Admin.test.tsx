@@ -40,4 +40,26 @@ describe('Admin', () => {
     await userEvent.selectOptions(screen.getByLabelText(/status for BBP-ABCD/i), 'confirmed');
     expect(patched).toBe('confirmed');
   });
+
+  it('retries the load when signing in again with the same key after a non-401 failure', async () => {
+    let calls = 0;
+    server.use(
+      http.get('/api/admin/orders', () => {
+        calls += 1;
+        if (calls === 1) {
+          return HttpResponse.json({ ok: false, error: 'Server exploded' }, { status: 500 });
+        }
+        return HttpResponse.json({ ok: true, orders: [adminOrder], stats });
+      }),
+    );
+    render(<Admin />);
+    await userEvent.type(screen.getByLabelText(/admin key/i), 'bakedbyprii-admin');
+    await userEvent.click(screen.getByRole('button', { name: /sign in/i }));
+    expect(await screen.findByText(/server exploded/i)).toBeInTheDocument();
+
+    // Retry without changing the input — must actually fire a second request.
+    await userEvent.click(screen.getByRole('button', { name: /sign in/i }));
+    expect(await screen.findByText('BBP-ABCD')).toBeInTheDocument();
+    expect(calls).toBe(2);
+  });
 });

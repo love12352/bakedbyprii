@@ -13,6 +13,7 @@ export default function Admin() {
   const [orders, setOrders] = useState<AdminOrder[]>([]);
   const [stats, setStats] = useState<AdminStats | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [attempt, setAttempt] = useState(0);
 
   const load = useCallback((k: string) => {
     adminListOrders(k)
@@ -25,12 +26,14 @@ export default function Admin() {
       });
   }, []);
 
-  useEffect(() => { if (key) load(key); }, [key, load]);
+  useEffect(() => { if (key) load(key); }, [key, attempt, load]);
 
   function signIn(e: React.FormEvent) {
     e.preventDefault();
     sessionStorage.setItem(KEY_STORAGE, keyInput);
+    setError(null);
     setKey(keyInput);
+    setAttempt((a) => a + 1);
   }
 
   async function changeStatus(ref: string, status: Status) {
