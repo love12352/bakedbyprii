@@ -1,3 +1,9 @@
 node_modules
 dist
 *.local
+
+# tsc -b emits these next to the sources (tsconfig.node.json is composite),
+# so `npm run build` would otherwise leave the tree dirty.
+*.tsbuildinfo
+vite.config.js
+vite.config.d.ts
