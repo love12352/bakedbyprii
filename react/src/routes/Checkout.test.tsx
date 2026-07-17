@@ -55,4 +55,25 @@ describe('Checkout', () => {
     await userEvent.click(screen.getByRole('button', { name: /place order/i }));
     expect(await screen.findByRole('heading', { name: /order placed/i })).toBeInTheDocument();
   });
+
+  it('prevents duplicate orders on rapid double-submit', async () => {
+    let postCount = 0;
+    server.use(http.post('/api/orders', () => {
+      postCount++;
+      return HttpResponse.json({ ok: true, ref: 'BBP-TEST', subtotal: 2.75, delivery_fee: 0, total: 2.75, payment: 'cash', fulfilment: 'collection' });
+    }));
+    renderCheckout();
+    await screen.findByText('Chocolate Chip Cookie');
+    await userEvent.type(screen.getByLabelText('Your name'), 'Sam');
+    await userEvent.type(screen.getByLabelText('Email'), 'sam@example.com');
+    await userEvent.type(screen.getByLabelText('Phone'), '07700900000');
+    const button = screen.getByRole('button', { name: /place order/i });
+    // Fire two clicks in rapid succession without awaiting between them
+    userEvent.click(button);
+    userEvent.click(button);
+    // Wait for navigation to confirm the order was placed
+    expect(await screen.findByRole('heading', { name: /order placed/i })).toBeInTheDocument();
+    // Assert exactly one POST was made
+    expect(postCount).toBe(1);
+  });
 });

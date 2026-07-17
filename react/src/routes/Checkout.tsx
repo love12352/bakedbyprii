@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useCart } from '../cart/CartContext';
 import { useMenu } from '../useMenu';
@@ -26,6 +26,7 @@ export default function Checkout() {
   });
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const submittingRef = useRef(false);
 
   const lines = useMemo(() => {
     if (!menu) return [];
@@ -48,8 +49,10 @@ export default function Checkout() {
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
+    if (submittingRef.current) return;
     const clientError = validateCheckout(form);
     if (clientError) { setError(clientError); return; }
+    submittingRef.current = true;
     setSubmitting(true); setError(null);
     try {
       const result = await createOrder({
@@ -62,6 +65,7 @@ export default function Checkout() {
     } catch (err) {
       setError((err as Error).message);
       setSubmitting(false);
+      submittingRef.current = false;
     }
   }
 
