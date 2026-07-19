@@ -26,6 +26,20 @@ function renderCheckout() {
 describe('Checkout', () => {
   beforeEach(() => localStorage.clear());
 
+  // Without the menu there are no prices, so the form must not render: it would
+  // show "Place order · £0.00", post an empty items array, and answer with the
+  // server's "add at least one item" while the customer's cart sits untouched.
+  it('offers a retry instead of a £0.00 order when the menu fails to load', async () => {
+    server.use(http.get('/api/menu', () => HttpResponse.json({ ok: false, error: 'boom' }, { status: 500 })));
+    renderCheckout();
+    expect(await screen.findByRole('button', { name: /try again/i })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /place order/i })).not.toBeInTheDocument();
+    expect(screen.getByText(/basket is safe/i)).toBeInTheDocument();
+    // The cart itself must survive — this is a pricing failure, not an empty basket.
+    expect(screen.queryByText(/basket is empty/i)).not.toBeInTheDocument();
+    expect(JSON.parse(localStorage.getItem('bbp-cart')!)).toEqual({ 'ck-chocchip': 2 });
+  });
+
   it('lists cart lines and a total from the menu', async () => {
     renderCheckout();
     expect(await screen.findByText('Chocolate Chip Cookie')).toBeInTheDocument();

@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useReducer, type ReactNode } from 'react';
+import { createContext, useContext, useEffect, useMemo, useReducer, type ReactNode } from 'react';
 import { cartReducer, cartCount, type Cart } from './cartReducer';
 
 const STORAGE_KEY = 'bbp-cart';
@@ -31,14 +31,18 @@ export function CartProvider({ children }: { children: ReactNode }) {
     try { localStorage.setItem(STORAGE_KEY, JSON.stringify(cart)); } catch { /* quota */ }
   }, [cart]);
 
-  const api: CartApi = {
+  // Memoised so the callbacks keep a stable identity. Without this, any
+  // consumer with `clear` in an effect's deps re-runs that effect every
+  // render — and since the reducer's 'clear' returns a fresh {} each time,
+  // that effect would loop forever. OrderConfirmation depends on this.
+  const api: CartApi = useMemo(() => ({
     cart,
     count: cartCount(cart),
     inc: (id) => dispatch({ type: 'inc', id }),
     dec: (id) => dispatch({ type: 'dec', id }),
     setQty: (id, qty) => dispatch({ type: 'set', id, qty }),
     clear: () => dispatch({ type: 'clear' }),
-  };
+  }), [cart]);
   return <CartCtx.Provider value={api}>{children}</CartCtx.Provider>;
 }
 

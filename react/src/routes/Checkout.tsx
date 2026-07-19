@@ -17,7 +17,7 @@ const PAYMENTS: { value: Payment; label: string }[] = [
 
 export default function Checkout() {
   const { cart, inc, dec } = useCart();
-  const { menu } = useMenu();
+  const { menu, loading, error: menuError, reload } = useMenu();
   const navigate = useNavigate();
   const [form, setForm] = useState<CheckoutForm>({
     name: '', email: '', phone: '', notes: '',
@@ -37,6 +37,21 @@ export default function Checkout() {
   const fee = form.fulfilment === 'delivery' ? deliveryFee(subtotal) : 0;
   const total = subtotal + fee;
   const set = (patch: Partial<CheckoutForm>) => setForm((f) => ({ ...f, ...patch }));
+
+  // Without the menu there are no prices to price the cart with, so the form
+  // must not render: it would show a £0.00 total and post an empty order,
+  // answering the customer with "add at least one item" while their cart is
+  // sitting right there. Say what actually went wrong instead.
+  if (loading) return <p className="state-msg">Loading your basket…</p>;
+  if (menuError) {
+    return (
+      <div className="state-msg">
+        <p>Sorry — we couldn’t load the menu, so we can’t price your basket right now.</p>
+        <p className="muted">Your basket is safe. Try again in a moment.</p>
+        <button className="submit-btn" onClick={reload}>Try again</button>
+      </div>
+    );
+  }
 
   if (menu && lines.length === 0) {
     return (
