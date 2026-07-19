@@ -4,16 +4,8 @@ import { useCart } from '../cart/CartContext';
 import { useMenu } from '../useMenu';
 import { createOrder } from '../api/client';
 import { gbp, deliveryFee } from '../money';
-import { validateCheckout, type CheckoutForm } from './checkoutValidation';
+import { validateCheckout, PAYMENT_OPTIONS, type CheckoutForm } from './checkoutValidation';
 import { QtyStepper } from '../components/QtyStepper';
-import type { Payment } from '../types';
-
-const PAYMENTS: { value: Payment; label: string }[] = [
-  { value: 'cash', label: 'Pay in person — cash' },
-  { value: 'bank', label: 'Bank transfer' },
-  { value: 'card', label: 'Pay by card (secure link)' },
-  { value: 'paypal', label: 'PayPal' },
-];
 
 export default function Checkout() {
   const { cart, inc, dec } = useCart();
@@ -132,7 +124,7 @@ export default function Checkout() {
 
         <div className="full">
           <label>Payment</label>
-          {PAYMENTS.map((p) => (
+          {PAYMENT_OPTIONS.map((p) => (
             <label key={p.value} className="pay-option">
               <input type="radio" name="payment" checked={form.payment === p.value} onChange={() => set({ payment: p.value })} /> {p.label}
             </label>

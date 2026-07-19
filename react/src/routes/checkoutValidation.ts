@@ -8,7 +8,19 @@ export interface CheckoutForm {
 
 const EMAIL_RE = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
 const OX11 = /^OX11/i;
-const PAYMENTS = ['cash', 'bank', 'card', 'paypal'];
+
+/** The four methods the server accepts, and the labels the checkout shows for
+ *  them. One list: the radio buttons and the validator can't drift apart.
+ *  The server re-validates against its own copy in server.js — that one is
+ *  authoritative, this mirrors it as a client-side hint. */
+export const PAYMENT_OPTIONS: { value: Payment; label: string }[] = [
+  { value: 'cash', label: 'Pay in person — cash' },
+  { value: 'bank', label: 'Bank transfer' },
+  { value: 'card', label: 'Pay by card (secure link)' },
+  { value: 'paypal', label: 'PayPal' },
+];
+
+const PAYMENTS: string[] = PAYMENT_OPTIONS.map((p) => p.value);
 
 export function validateCheckout(f: CheckoutForm): string | null {
   if (!f.name.trim() || !f.email.trim() || !f.phone.trim() || !f.date.trim())

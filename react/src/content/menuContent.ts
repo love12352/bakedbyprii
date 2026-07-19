@@ -28,6 +28,21 @@ export const MENU_CONTENT: Record<string, ItemContent> = {
   'tea-scones': { description: 'Four fresh scones — jam and cream optional.', tags: ['4-pack'] },
 };
 
+const EMPTY: ItemContent = { description: '', tags: [] };
+
+/** Prose for a menu item. The facts (name, price, allergens) come from
+ *  /api/menu; only the copy lives here, keyed by the database's id.
+ *
+ *  An own-property check, not a bare lookup, so an id like `constructor`
+ *  can't return a prototype member. An unknown id degrades to no
+ *  description rather than breaking the card — but that also means a new
+ *  item added to the database would render bare, so warn in development. */
 export function contentFor(id: string): ItemContent {
-  return MENU_CONTENT[id] ?? { description: '', tags: [] };
+  if (!Object.prototype.hasOwnProperty.call(MENU_CONTENT, id)) {
+    if (import.meta.env.DEV) {
+      console.warn(`[menuContent] no description for menu id "${id}" — add one to MENU_CONTENT.`);
+    }
+    return EMPTY;
+  }
+  return MENU_CONTENT[id];
 }

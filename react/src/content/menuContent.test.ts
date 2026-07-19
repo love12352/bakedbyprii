@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { contentFor, MENU_CONTENT } from './menuContent';
 import { themeForCategory, THEMES } from './theme';
 
@@ -18,8 +18,21 @@ describe('menu content', () => {
     }
   });
 
-  it('contentFor returns a safe empty default for unknown ids', () => {
+  it('contentFor returns a safe empty default for unknown ids, and warns in dev', () => {
+    // The warning is the point: a menu item added to the database with no
+    // description here renders bare, and this is what surfaces that.
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
     expect(contentFor('nope')).toEqual({ description: '', tags: [] });
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining('no description for menu id "nope"'));
+    warn.mockRestore();
+  });
+
+  it('contentFor does not treat prototype members as menu content', () => {
+    for (const id of ['constructor', 'toString', '__proto__', 'valueOf']) {
+      const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+      expect(contentFor(id), id).toEqual({ description: '', tags: [] });
+      warn.mockRestore();
+    }
   });
 
   it('maps categories to their theme and falls back to Cakes', () => {

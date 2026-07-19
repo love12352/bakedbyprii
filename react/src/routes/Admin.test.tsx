@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { act, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { http, HttpResponse } from 'msw';
 import { server } from '../test/mocks/handlers';
@@ -76,5 +76,32 @@ describe('Admin', () => {
     expect(await screen.findByText('s@e.co')).toBeInTheDocument();
     expect(screen.getByText('07700900123')).toBeInTheDocument();
     expect(screen.getByText(/severe nut allergy/i)).toBeInTheDocument();
+  });
+
+  // load() fires from the effect and from every status change, so a slow early
+  // response can land after a newer one and repaint the table with stale rows.
+  it('ignores a slow response that a newer load has superseded', async () => {
+    let call = 0;
+    server.use(http.get('/api/admin/orders', async () => {
+      const i = call++;
+      if (i === 0) {
+        // The first load is slow and carries the OLD name.
+        await new Promise((r) => setTimeout(r, 80));
+        return HttpResponse.json({ ok: true, orders: [{ ...adminOrder, name: 'Stale Sam' }], stats });
+      }
+      return HttpResponse.json({ ok: true, orders: [{ ...adminOrder, name: 'Fresh Sam' }], stats });
+    }));
+
+    render(<Admin />);
+    await userEvent.type(screen.getByLabelText(/admin key/i), 'bakedbyprii-admin');
+    await userEvent.click(screen.getByRole('button', { name: /sign in/i }));
+    // Sign in again: a second, faster load supersedes the in-flight first one.
+    await userEvent.click(screen.getByRole('button', { name: /sign in/i }));
+
+    expect(await screen.findByText('Fresh Sam')).toBeInTheDocument();
+    // Wait past the slow response's delay so it has settled.
+    await act(async () => { await new Promise((r) => setTimeout(r, 120)); });
+    expect(screen.getByText('Fresh Sam')).toBeInTheDocument();
+    expect(screen.queryByText('Stale Sam')).not.toBeInTheDocument();
   });
 });

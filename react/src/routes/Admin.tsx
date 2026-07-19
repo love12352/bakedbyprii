@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { adminListOrders, adminSetStatus } from '../api/client';
 import { gbp } from '../money';
 import { ApiError, type AdminOrder, type AdminStats, type Status } from '../types';
@@ -15,10 +15,22 @@ export default function Admin() {
   const [error, setError] = useState<string | null>(null);
   const [attempt, setAttempt] = useState(0);
 
+  // Same stale-response guard as useMenu: load() fires from the effect and from
+  // every status change, so two rapid changes can settle out of order and render
+  // a stale table. Strictly monotonic — never rewound — so a generation can't be
+  // reused (see useMenu.ts for the StrictMode hazard that forces this).
+  const generationRef = useRef(0);
+
   const load = useCallback((k: string) => {
+    const generation = ++generationRef.current;
+    const current = () => generationRef.current === generation;
     adminListOrders(k)
-      .then(({ orders, stats }) => { setOrders(orders); setStats(stats); setAuthed(true); setError(null); })
+      .then(({ orders, stats }) => {
+        if (!current()) return;
+        setOrders(orders); setStats(stats); setAuthed(true); setError(null);
+      })
       .catch((e) => {
+        if (!current()) return;
         if (e instanceof ApiError && e.status === 401) {
           sessionStorage.removeItem(KEY_STORAGE); setKey(''); setAuthed(false);
           setError('Incorrect admin key.');
